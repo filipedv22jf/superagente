@@ -25,6 +25,15 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.4;box-shadow:0 0 3px var(--green)}}
 .logo em{color:var(--accent);font-style:normal}
 .tb-right{display:flex;align-items:center;gap:8px}
+@media(max-width:600px){
+  .tb{padding:0 12px;height:46px}
+  .pill{display:none}
+  .tb-right{gap:5px}
+  .btn{padding:5px 10px;font-size:11px}
+}
+@media(max-width:480px){
+  .tb-right .btn:not(.btn-accent):not(:last-child){display:none}
+}
 .pill{font-size:11px;font-family:var(--mono);padding:5px 14px;border-radius:6px;border:1px solid var(--border2);color:var(--text2);letter-spacing:.3px;font-weight:500}
 .pill-green{
   background:linear-gradient(180deg,#1a9e62 0%,#0d6e42 100%);
@@ -56,6 +65,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 /* ── AGENT CARDS GRID ── */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;margin-bottom:20px}
+@media(max-width:520px){.grid{grid-template-columns:1fr 1fr;gap:10px}}
+@media(max-width:360px){.grid{grid-template-columns:1fr;gap:10px}}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
 .card:hover{border-color:var(--border2);box-shadow:0 8px 40px rgba(0,0,0,.5);transform:translateY(-2px)}
 .card-header{height:48px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;position:relative}
@@ -79,6 +90,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 /* ── WIZARD ── */
 .wiz-layout{display:grid;grid-template-columns:190px 1fr;gap:14px;align-items:start}
+@media(max-width:640px){.wiz-layout{grid-template-columns:1fr}.wiz-side{position:static!important;display:flex;gap:6px;padding:10px;overflow-x:auto}.wiz-side-title{display:none}.ws-item{flex-shrink:0;flex-direction:column;padding:6px 10px;border-radius:6px}.ws-label{font-size:10px}.ws-line{display:none}}
 .wiz-side{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;position:sticky;top:70px}
 .wiz-side-title{font-size:9px;font-family:var(--mono);color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
 .ws-item{display:flex;align-items:center;gap:9px;padding:9px 7px;border-radius:6px;cursor:pointer;transition:background .15s;margin-bottom:3px}
@@ -106,6 +118,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .frow{margin-bottom:15px}
 .fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:15px}
 .fgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:15px}
+@media(max-width:560px){.fgrid2,.fgrid3{grid-template-columns:1fr}}
 .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;transition:border-color .15s}
 .toggle-row:hover{border-color:var(--border2)}
 .tinfo .ttitle{font-size:12px;font-weight:500}
@@ -197,6 +210,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
         <div class="ws-num" id="wn4">4</div>
         <div class="ws-label">Integrações</div>
       </div>
+      <div style="flex:1"></div>
+      <button class="btn" onclick="cancelarWizard()" style="width:100%;margin-top:16px;font-size:11px;color:var(--text3);text-align:center">← Cancelar</button>
     </div>
 
     <div>
@@ -756,6 +771,15 @@ async function salvarEdicao(id) {
 // ─────────────────────────────────────────────
 let _curStep = 1;
 
+function cancelarWizard() {
+  // Restaura wizard para modo criação antes de voltar
+  document.getElementById('f-empresa_id').disabled = false;
+  const btn = document.getElementById('btn-criar');
+  btn.textContent = 'Criar agente';
+  btn.onclick = criarAgente;
+  showScr('home');
+}
+
 function abrirWizard() {
   showScr('wizard');
   goStep(1);
@@ -876,56 +900,82 @@ function abrirGraph(id, nome) {
 
 let _grafEmpresaId = '';
 let _statsInterval = null;
+let _ws = null;
 let _statsAnterior = {total_leads:0, em_trial:0, follow_up:0, pra_fechar:0, mensagens_total:0};
-let _dispararParticula = null; // será preenchido pelo initGraph
+let _dispararParticula = null;
 
 async function carregarStatsReais(id) {
   try {
     const r = await fetch(API_URL + '/stats/' + id);
     if (!r.ok) return;
     const d = await r.json();
-
-    // Calcula delta — quantas coisas mudaram desde o último poll
     const deltaMsg = Math.max(0, (d.mensagens_total||0) - _statsAnterior.mensagens_total);
     const deltaLeads = Math.max(0, (d.total_leads||0) - _statsAnterior.total_leads);
-
-    // Atualiza contadores na tela com dados reais
     document.getElementById('cnt-t').textContent = d.mensagens_total || 0;
     document.getElementById('cnt-l').textContent = d.total_leads || 0;
     document.getElementById('cnt-tr').textContent = d.em_trial || 0;
     document.getElementById('cnt-f').textContent = d.follow_up || 0;
     document.getElementById('cnt-fc').textContent = d.pra_fechar || 0;
-
-    // Dispara partículas proporcionais à atividade detectada
     if (_dispararParticula && (deltaMsg > 0 || deltaLeads > 0)) {
-      const n = Math.min(deltaMsg + deltaLeads * 2, 8); // máx 8 partículas por poll
-      for (let i = 0; i < n; i++) {
+      const n = Math.min(deltaMsg + deltaLeads * 2, 8);
+      for (let i = 0; i < n; i++)
         setTimeout(() => { if (_dispararParticula) _dispararParticula(); }, i * 200);
-      }
     }
-
-    // Se não tem atividade nenhuma — sem partículas (idle)
     _statsAnterior = {
-      total_leads: d.total_leads || 0,
-      em_trial: d.em_trial || 0,
-      follow_up: d.follow_up || 0,
-      pra_fechar: d.pra_fechar || 0,
-      mensagens_total: d.mensagens_total || 0
+      total_leads: d.total_leads||0, em_trial: d.em_trial||0,
+      follow_up: d.follow_up||0, pra_fechar: d.pra_fechar||0,
+      mensagens_total: d.mensagens_total||0
     };
   } catch(e) {}
+}
+
+function conectarWS(id) {
+  if (_ws) { try { _ws.close(); } catch(e) {} _ws = null; }
+  try {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    const host = (API_URL || location.origin).replace(/^https?:\/\//, '');
+    _ws = new WebSocket(`${proto}://${host}/ws/${id}`);
+    _ws.onopen = () => {
+      _ws._ping = setInterval(() => {
+        if (_ws && _ws.readyState === 1) _ws.send('ping');
+      }, 25000);
+    };
+    _ws.onmessage = (ev) => {
+      if (ev.data === 'pong') return;
+      try {
+        const d = JSON.parse(ev.data);
+        if (d.tipo === 'mensagem_processada') {
+          if (_dispararParticula) _dispararParticula();
+          setTimeout(() => carregarStatsReais(id), 800);
+        }
+      } catch(e) {}
+    };
+    _ws.onclose = () => {
+      clearInterval(_ws?._ping);
+      _ws = null;
+      setTimeout(() => {
+        if (document.getElementById('graphView').classList.contains('active'))
+          conectarWS(id);
+      }, 5000);
+    };
+    _ws.onerror = () => { _ws = null; };
+  } catch(e) { _ws = null; }
 }
 
 function iniciarPollStats(id) {
   if (_statsInterval) clearInterval(_statsInterval);
   _statsAnterior = {total_leads:0, em_trial:0, follow_up:0, pra_fechar:0, mensagens_total:0};
+  conectarWS(id);
+  // Poll de 15s como fallback (cobre quando WS não está disponível)
   _statsInterval = setInterval(() => {
     if (document.getElementById('graphView').classList.contains('active')) {
       carregarStatsReais(id);
     } else {
       clearInterval(_statsInterval);
+      if (_ws) { try { _ws.close(); } catch(e) {} _ws = null; }
       _dispararParticula = null;
     }
-  }, 10000);
+  }, 15000);
 }
 
 function initGraph() {
