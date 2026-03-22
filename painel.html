@@ -399,33 +399,6 @@ aguardando mensagem...
   </div>
 </div>
 
-<!-- ── MENU DE EDIÇÃO ── -->
-<div id="edit-menu" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);align-items:center;justify-content:center" onclick="if(event.target===this)fecharMenu()">
-  <div style="background:#0d0d18;border:1px solid #252540;border-radius:14px;padding:0;width:300px;overflow:hidden">
-    <div style="padding:18px 20px 14px;border-bottom:1px solid #1a1a2e">
-      <div style="font-size:14px;font-weight:600;color:#e2e2ef" id="menu-nome"></div>
-      <div style="font-size:10px;font-family:monospace;color:#3a3a60;margin-top:2px" id="menu-id"></div>
-    </div>
-    <div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px">
-      <button onclick="menuVerFluxo()" style="width:100%;padding:11px 14px;border-radius:8px;border:1px solid #252540;background:#12121e;color:#e2e2ef;font-size:12px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s" onmouseover="this.style.borderColor='#7c5cfc'" onmouseout="this.style.borderColor='#252540'">
-        Ver fluxo ao vivo
-      </button>
-      <button onclick="menuEditarAgente()" style="width:100%;padding:11px 14px;border-radius:8px;border:1px solid #252540;background:#12121e;color:#e2e2ef;font-size:12px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s" onmouseover="this.style.borderColor='#7c5cfc'" onmouseout="this.style.borderColor='#252540'">
-        Editar configurações
-      </button>
-      <button id="menu-toggle" onclick="menuToggleAtivo()" style="width:100%;padding:11px 14px;border-radius:8px;border:1px solid;background:transparent;font-size:12px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s">
-      </button>
-      <div style="height:1px;background:#1a1a2e;margin:2px 0"></div>
-      <button onclick="menuExcluir()" style="width:100%;padding:11px 14px;border-radius:8px;border:1px solid rgba(255,71,87,.2);background:rgba(255,71,87,.05);color:#ff4757;font-size:12px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s" onmouseover="this.style.borderColor='#ff4757'" onmouseout="this.style.borderColor='rgba(255,71,87,.2)'">
-        Excluir permanentemente
-      </button>
-    </div>
-    <div style="padding:10px 12px;border-top:1px solid #1a1a2e">
-      <button onclick="fecharMenu()" style="width:100%;padding:8px;border-radius:6px;border:1px solid #1a1a2e;background:transparent;color:#3a3a60;font-size:11px;cursor:pointer">cancelar</button>
-    </div>
-  </div>
-</div>
-
 <!-- ── TOAST ── -->
 <div class="toast" id="toast"></div>
 
@@ -591,26 +564,39 @@ async function carregarEmpresas() {
   empresas.forEach((e, i) => {
     const p = paleta[i % paleta.length];
     const statusOk = e.ativo;
+    const eid = e.empresa_id.replace(/'/g,"&#39;");
+    const enome = e.nome.replace(/'/g,"&#39;");
     html += `
-    <div class="card">
-      <div class="card-header" style="background:${p.bg};color:${p.text}">
-        ${p.label}
-      </div>
-      <div class="card-body">
-        <div class="card-working">
-          <span style="width:5px;height:5px;border-radius:50%;background:${p.text};display:inline-block;opacity:.5;animation:pulse 1.5s infinite"></span>
-          trabalhando...
+    <div class="card" id="card-${eid}" style="position:relative">
+      <!-- conteúdo normal -->
+      <div class="card-content" id="content-${eid}">
+        <div class="card-header" style="background:${p.bg};color:${p.text}">${p.label}</div>
+        <div class="card-body">
+          <div class="card-working">
+            <span style="width:5px;height:5px;border-radius:50%;background:${p.text};display:inline-block;opacity:.5;animation:pulse 1.5s infinite"></span>
+            trabalhando...
+          </div>
+          <div class="card-avatar">${pixelChar(i, e.nome)}</div>
+          <div class="cname">${e.nome}</div>
+          <div class="csub">${e.empresa_id}</div>
+          <div class="card-status">
+            <span class="card-status-dot" style="background:${statusOk ? 'var(--green)' : 'var(--text3)'}"></span>
+            ${statusOk ? 'ONLINE' : 'OFFLINE'}
+          </div>
         </div>
-        <div class="card-avatar">${pixelChar(i, e.nome)}</div>
-        <div class="cname">${e.nome}</div>
-        <div class="csub">${e.empresa_id}</div>
-        <div class="card-status">
-          <span class="card-status-dot" style="background:${statusOk ? 'var(--green)' : 'var(--text3)'}"></span>
-          ${statusOk ? 'ONLINE' : 'OFFLINE'}
+        <div class="cbtns">
+          <button class="btn btn-sm btn-accent" style="flex:1" onclick="abrirMenu('${eid}','${enome}',${statusOk})">Editar</button>
         </div>
       </div>
-      <div class="cbtns">
-        <button class="btn btn-sm btn-accent" style="flex:1" onclick="abrirMenu('${e.empresa_id}','${e.nome}',${e.ativo})">Editar</button>
+      <!-- menu overlay sobre o card -->
+      <div class="card-menu" id="menu-${eid}" style="display:none;position:absolute;inset:0;border-radius:14px;background:rgba(9,9,15,.92);backdrop-filter:blur(2px);flex-direction:column;justify-content:center;gap:7px;padding:16px;z-index:10">
+        <div style="font-size:13px;font-weight:600;color:#e2e2ef;margin-bottom:4px;padding:0 2px">${e.nome}</div>
+        <button class="btn btn-accent" style="width:100%;text-align:left;font-size:11px;letter-spacing:.3px" onclick="menuVerFluxo('${eid}','${enome}')">Ver fluxo ao vivo</button>
+        <button class="btn btn-accent" style="width:100%;text-align:left;font-size:11px;letter-spacing:.3px;background:var(--bg3);box-shadow:none" onclick="menuEditarAgente('${eid}')">Editar configurações</button>
+        <button class="btn" style="width:100%;text-align:left;font-size:11px;letter-spacing:.3px;${statusOk ? 'border-color:rgba(255,71,87,.4);color:#ff4757' : 'border-color:rgba(0,208,132,.4);color:#00d084'}" onclick="menuToggleAtivo('${eid}',${statusOk})">${statusOk ? 'Desativar' : 'Ativar'}</button>
+        <div style="height:1px;background:#1a1a2e;margin:2px 0"></div>
+        <button class="btn" style="width:100%;text-align:left;font-size:11px;letter-spacing:.3px;border-color:rgba(255,71,87,.3);color:#ff4757;background:rgba(255,71,87,.05)" onclick="menuExcluir('${eid}','${enome}')">Excluir permanentemente</button>
+        <button class="btn" style="width:100%;text-align:center;font-size:10px;color:var(--text3);margin-top:2px" onclick="fecharMenu('${eid}')">cancelar</button>
       </div>
     </div>`;
   });
@@ -625,60 +611,74 @@ async function carregarEmpresas() {
 }
 
 // ─────────────────────────────────────────────
-// MENU DE EDIÇÃO
+// MENU INLINE NO CARD
 // ─────────────────────────────────────────────
-let _menuEmpresa = null;
 
 function abrirMenu(id, nome, ativo) {
-  _menuEmpresa = {id, nome, ativo};
-  document.getElementById('menu-nome').textContent = nome;
-  document.getElementById('menu-id').textContent = id;
-  const btnToggle = document.getElementById('menu-toggle');
-  btnToggle.textContent = ativo ? 'Desativar' : 'Ativar';
-  btnToggle.style.background = ativo ? 'rgba(255,71,87,.1)' : 'rgba(0,208,132,.1)';
-  btnToggle.style.borderColor = ativo ? 'rgba(255,71,87,.3)' : 'rgba(0,208,132,.3)';
-  btnToggle.style.color = ativo ? '#ff4757' : '#00d084';
-  document.getElementById('edit-menu').style.display = 'flex';
+  // fecha qualquer outro menu aberto
+  document.querySelectorAll('.card-menu').forEach(m => m.style.display = 'none');
+  const m = document.getElementById('menu-' + id);
+  if (m) m.style.display = 'flex';
 }
 
-function fecharMenu() {
-  document.getElementById('edit-menu').style.display = 'none';
-  _menuEmpresa = null;
+function fecharMenu(id) {
+  const m = document.getElementById('menu-' + id);
+  if (m) m.style.display = 'none';
 }
 
-async function menuEditarAgente() {
-  if (!_menuEmpresa) return;
-  fecharMenu();
-  // Carrega dados completos e pré-preenche o wizard
+function menuVerFluxo(id, nome) {
+  fecharMenu(id);
+  abrirGraph(id, nome);
+}
+
+async function menuEditarAgente(id) {
+  fecharMenu(id);
   try {
-    const r = await fetch(API_URL + '/empresas/' + _menuEmpresa.id);
-    if (!r.ok) throw new Error('Não encontrado');
+    const r = await fetch(API_URL + '/empresas/' + id);
+    if (!r.ok) throw new Error('Empresa não encontrada');
     const d = await r.json();
+    // Abre wizard
     abrirWizard();
-    // Preenche campos com dados existentes
-    const campos = [
-      'empresa_id','nome','responsavel_nome','responsavel_whatsapp',
-      'modelo_ia','temperatura','prompt','buffer_janela_segundos',
-      'zapi_instance_id','zapi_token','zapi_client_token',
-      'openai_api_key','webhook_notificacao_url'
-    ];
-    campos.forEach(f => {
-      const el = document.getElementById('f-' + f);
-      if (el && d[f] !== null && d[f] !== undefined) el.value = d[f];
+    // Preenche todos os campos com dados existentes
+    const mapa = {
+      'empresa_id': d.empresa_id,
+      'nome': d.nome,
+      'responsavel_nome': d.responsavel_nome,
+      'responsavel_whatsapp': d.responsavel_whatsapp,
+      'modelo_ia': d.modelo_ia,
+      'temperatura': d.temperatura,
+      'prompt': d.prompt,
+      'buffer_janela_segundos': d.buffer_janela_segundos,
+      'zapi_instance_id': d.zapi_instance_id,
+      'zapi_token': d.zapi_token,
+      'zapi_client_token': d.zapi_client_token,
+      'openai_api_key': d.openai_api_key,
+      'webhook_notificacao_url': d.webhook_notificacao_url,
+    };
+    Object.entries(mapa).forEach(([campo, val]) => {
+      const el = document.getElementById('f-' + campo);
+      if (el && val !== null && val !== undefined) el.value = val;
     });
-    // Empresa já existe — ao salvar usa PUT
+    // Toggles
+    ['fluxo_comercial','fluxo_suporte','fluxo_followup','fluxo_caso_sensivel','portao_liberacao'].forEach(f => {
+      const el = document.getElementById('t-' + f);
+      if (el) { if (d[f] !== false) el.classList.add('on'); else el.classList.remove('on'); }
+    });
+    // Bloqueia ID e troca botão para edição
     document.getElementById('f-empresa_id').disabled = true;
-    document.getElementById('btn-criar').textContent = 'Salvar alterações';
-    document.getElementById('btn-criar').onclick = () => salvarEdicao(_menuEmpresa?.id || d.empresa_id);
-    toast('Dados carregados para edição');
-  } catch(e) {
-    toast('Erro ao carregar dados: ' + e.message, false);
+    const btnCriar = document.getElementById('btn-criar');
+    btnCriar.textContent = 'Salvar alterações';
+    // Captura o id localmente para o closure
+    const empresaId = d.empresa_id;
+    btnCriar.onclick = () => salvarEdicao(empresaId);
+    toast('Dados carregados — edite e salve');
+  } catch(err) {
+    toast('Erro ao carregar: ' + err.message, false);
   }
 }
 
-async function menuToggleAtivo() {
-  if (!_menuEmpresa) return;
-  const {id, ativo} = _menuEmpresa;
+async function menuToggleAtivo(id, ativo) {
+  fecharMenu(id);
   try {
     if (ativo) {
       await fetch(API_URL + '/empresas/' + id, {method:'DELETE'});
@@ -687,31 +687,22 @@ async function menuToggleAtivo() {
       await fetch(API_URL + '/ativar/' + id, {method:'POST'});
       toast('Agente ativado!');
     }
-    fecharMenu();
     carregarEmpresas();
   } catch(e) {
     toast('Erro: ' + e.message, false);
   }
 }
 
-async function menuExcluir() {
-  if (!_menuEmpresa) return;
-  if (!confirm('Excluir permanentemente "' + _menuEmpresa.nome + '"? Essa ação não pode ser desfeita.')) return;
+async function menuExcluir(id, nome) {
+  fecharMenu(id);
+  if (!confirm('Excluir permanentemente "' + nome + '"? Essa ação não pode ser desfeita.')) return;
   try {
-    // Deleta do Supabase permanentemente
-    await fetch(API_URL + '/empresas/' + _menuEmpresa.id + '?permanent=true', {method:'DELETE'});
-    toast('Agente excluído permanentemente');
-    fecharMenu();
+    await fetch(API_URL + '/empresas/' + id + '?permanent=true', {method:'DELETE'});
+    toast('Agente excluído');
     carregarEmpresas();
   } catch(e) {
     toast('Erro ao excluir: ' + e.message, false);
   }
-}
-
-async function menuVerFluxo() {
-  if (!_menuEmpresa) return;
-  fecharMenu();
-  abrirGraph(_menuEmpresa.id, _menuEmpresa.nome);
 }
 
 async function salvarEdicao(id) {
@@ -741,22 +732,23 @@ async function salvarEdicao(id) {
   };
   try {
     const r = await fetch(API_URL + '/empresas/' + id, {
-      method:'PUT',
-      headers:{'Content-Type':'application/json'},
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload)
     });
     if (!r.ok) throw new Error((await r.json()).detail || 'Erro');
     toast('Alterações salvas!');
+    // Restaura wizard para modo criação
+    document.getElementById('f-empresa_id').disabled = false;
+    btn.textContent = 'Criar agente';
+    btn.onclick = criarAgente;
     showScr('home');
     carregarEmpresas();
-  } catch(e) {
-    toast('Erro: ' + e.message, false);
+  } catch(err) {
+    toast('Erro: ' + err.message, false);
   }
-  btn.textContent = 'Salvar alterações';
+  btn.textContent = btn.textContent === 'Salvando...' ? 'Salvar alterações' : btn.textContent;
   btn.disabled = false;
-  document.getElementById('f-empresa_id').disabled = false;
-  document.getElementById('btn-criar').textContent = 'Criar agente';
-  document.getElementById('btn-criar').onclick = criarAgente;
 }
 
 // ─────────────────────────────────────────────
