@@ -654,6 +654,25 @@ async def testar_mensagem(body: MensagemTeste):
     gestor = _gestores.get(body.empresa_id)
     if not gestor:
         raise HTTPException(status_code=404, detail="Empresa não encontrada")
+
+    cfg = _empresas.get(body.empresa_id)
+
+    # Respeita portão de liberação igual ao webhook real
+    if cfg and cfg.portao_liberacao:
+        status_atual = _verificar_portao(body.empresa_id, body.telefone)
+        status_bloqueados = [
+            "AGUARDANDO_LIBERACAO", "PASSAR_HUMANO",
+            "FINALIZADO_SUCESSO", "FINALIZADO_RECUSOU",
+            "FINALIZADO_NAO_QUALIFICADO", "FINALIZADO_INATIVO", "FINALIZADO_ERRO"
+        ]
+        if status_atual in status_bloqueados or status_atual is None:
+            _registrar_aguardando(body.empresa_id, body.telefone, body.mensagem)
+            return JSONResponse({
+                "status": "waiting_approval",
+                "resposta": "⏳ Novo contato registrado. Aguardando liberação no painel do cliente.",
+                "status_conversa": "AGUARDANDO_LIBERACAO"
+            })
+
     resultado = await asyncio.to_thread(
         gestor.processar_mensagem,
         telefone=body.telefone, mensagem=body.mensagem
