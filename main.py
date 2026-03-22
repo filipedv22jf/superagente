@@ -766,6 +766,81 @@ async def painel():
     return FileResponse("painel.html")
 
 
+@app.get("/cliente/{empresa_id}")
+async def cliente_painel(empresa_id: str, token: str = ""):
+    """Painel do cliente — acesso via token."""
+    try:
+        r = _supabase.table("empresas").select(
+            "empresa_id, nome, token_cliente, ativo"
+        ).eq("empresa_id", empresa_id).limit(1).execute()
+        if not r.data:
+            raise HTTPException(status_code=404, detail="Empresa não encontrada")
+        empresa = r.data[0]
+        tok = empresa.get("token_cliente", "")
+        if tok and token != tok:
+            raise HTTPException(status_code=403, detail="Token inválido")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return FileResponse("cliente.html")
+
+
+@app.get("/api/cliente/{empresa_id}/leads")
+async def api_leads(empresa_id: str, token: str = "", status: str = ""):
+    """API de leads para o painel do cliente."""
+    try:
+        q = _supabase.table("conversas").select(
+            "telefone, nome_aluno, status_conversa, tag_crm, "
+            "fase, updated_at, contador_mensagens, primeira_mensagem"
+        ).eq("empresa_id", empresa_id).order("updated_at", desc=True)
+        if status:
+            q = q.eq("status_conversa", status)
+        r = q.limit(100).execute()
+        return JSONResponse(r.data or [])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/cliente/{empresa_id}/notificacoes")
+async def api_notificacoes(empresa_id: str, token: str = ""):
+    """Notificações recentes para o painel do cliente."""
+    try:
+        r = _supabase.table("conversas").select(
+            "telefone, nome_aluno, status_conversa, tag_crm, updated_at, primeira_mensagem"
+        ).eq("empresa_id", empresa_id).in_("status_conversa", [
+            "AGUARDANDO_LIBERACAO", "PASSAR_HUMANO", "ACESSO_LIBERADO", "CADASTRO_ENVIADO"
+        ]).order("updated_at", desc=True).limit(50).execute()
+        return JSONResponse(r.data or [])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/cliente/{empresa_id}/stats")
+async def api_cliente_stats(empresa_id: str, token: str = ""):
+    """Stats resumidos para o painel do cliente."""
+    try:
+        r = _supabase.table("conversas").select(
+            "status_conversa, updated_at"
+        ).eq("empresa_id", empresa_id).execute()
+        conversas = r.data or []
+        from datetime import datetime, timezone, timedelta
+        agora = datetime.now(timezone.utc)
+        hoje = agora - timedelta(hours=24)
+        stats = {
+            "total": len(conversas),
+            "aguardando": sum(1 for c in conversas if c["status_conversa"] == "AGUARDANDO_LIBERACAO"),
+            "em_atendimento": sum(1 for c in conversas if c["status_conversa"] == "CONTINUAR"),
+            "em_trial": sum(1 for c in conversas if c["status_conversa"] in ["ACESSO_LIBERADO","CADASTRO_ENVIADO"]),
+            "pra_fechar": sum(1 for c in conversas if c["status_conversa"] == "PASSAR_HUMANO"),
+            "follow_up": sum(1 for c in conversas if c["status_conversa"] == "AGUARDAR_FOLLOW_UP"),
+            "finalizados": sum(1 for c in conversas if c["status_conversa"].startswith("FINALIZADO")),
+        }
+        return JSONResponse(stats)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ============================================================================
 # PONTO DE ENTRADA
 # ============================================================================
