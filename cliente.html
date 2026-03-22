@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Central de Atendimento</title>
-<link rel="icon" type="image/png" href="icone.png"/>
+<link rel="icon" type="image/png" href="/icone.png"/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -303,9 +303,11 @@ function initials(nome) {
 
 // ── FILA DE LIBERAÇÃO ─────────────────────────
 function renderFila(leads) {
-  const fila = leads.filter(l => l.status_conversa === 'AGUARDANDO_LIBERACAO');
   const sec = document.getElementById('sec-fila');
   const list = document.getElementById('fila-list');
+  // Só mostra fila se portão de liberação estiver ativo
+  if (!_toggles.portao_liberacao) { sec.style.display = 'none'; return; }
+  const fila = leads.filter(l => l.status_conversa === 'AGUARDANDO_LIBERACAO');
   if (!fila.length) { sec.style.display = 'none'; return; }
   sec.style.display = 'block';
   list.innerHTML = fila.map((l, i) => {
