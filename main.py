@@ -761,6 +761,14 @@ async def websocket_empresa(websocket: WebSocket, empresa_id: str):
         _ws_connections.get(empresa_id, set()).discard(websocket)
 
 
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse("icone.png")
+
+@app.get("/icone.png")
+async def icone():
+    return FileResponse("icone.png")
+
 @app.get("/painel")
 async def painel():
     return FileResponse("painel.html")
@@ -768,17 +776,13 @@ async def painel():
 
 @app.get("/cliente/{empresa_id}")
 async def cliente_painel(empresa_id: str, token: str = ""):
-    """Painel do cliente — acesso via token."""
+    """Painel do cliente — acesso livre por empresa_id."""
     try:
         r = _supabase.table("empresas").select(
-            "empresa_id, nome, token_cliente, ativo"
+            "empresa_id, nome, ativo"
         ).eq("empresa_id", empresa_id).limit(1).execute()
         if not r.data:
             raise HTTPException(status_code=404, detail="Empresa não encontrada")
-        empresa = r.data[0]
-        tok = empresa.get("token_cliente", "")
-        if tok and token != tok:
-            raise HTTPException(status_code=403, detail="Token inválido")
     except HTTPException:
         raise
     except Exception as e:
@@ -818,16 +822,20 @@ async def api_notificacoes(empresa_id: str, token: str = ""):
 
 @app.get("/api/cliente/{empresa_id}/stats")
 async def api_cliente_stats(empresa_id: str, token: str = ""):
-    """Stats resumidos para o painel do cliente."""
+    """Stats resumidos + config de toggles para o painel do cliente."""
     try:
+        # Busca config da empresa (toggles)
+        cfg_r = _supabase.table("empresas").select(
+            "nome, portao_liberacao, fluxo_comercial, fluxo_suporte, fluxo_followup, fluxo_caso_sensivel"
+        ).eq("empresa_id", empresa_id).limit(1).execute()
+        cfg = cfg_r.data[0] if cfg_r.data else {}
+
         r = _supabase.table("conversas").select(
             "status_conversa, updated_at"
         ).eq("empresa_id", empresa_id).execute()
         conversas = r.data or []
-        from datetime import datetime, timezone, timedelta
-        agora = datetime.now(timezone.utc)
-        hoje = agora - timedelta(hours=24)
         stats = {
+            "nome": cfg.get("nome", empresa_id),
             "total": len(conversas),
             "aguardando": sum(1 for c in conversas if c["status_conversa"] == "AGUARDANDO_LIBERACAO"),
             "em_atendimento": sum(1 for c in conversas if c["status_conversa"] == "CONTINUAR"),
@@ -835,6 +843,13 @@ async def api_cliente_stats(empresa_id: str, token: str = ""):
             "pra_fechar": sum(1 for c in conversas if c["status_conversa"] == "PASSAR_HUMANO"),
             "follow_up": sum(1 for c in conversas if c["status_conversa"] == "AGUARDAR_FOLLOW_UP"),
             "finalizados": sum(1 for c in conversas if c["status_conversa"].startswith("FINALIZADO")),
+            "toggles": {
+                "portao_liberacao": cfg.get("portao_liberacao", False),
+                "fluxo_comercial": cfg.get("fluxo_comercial", True),
+                "fluxo_suporte": cfg.get("fluxo_suporte", True),
+                "fluxo_followup": cfg.get("fluxo_followup", True),
+                "fluxo_caso_sensivel": cfg.get("fluxo_caso_sensivel", True),
+            }
         }
         return JSONResponse(stats)
     except Exception as e:
