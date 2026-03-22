@@ -734,33 +734,54 @@ function abrirGraph(id, nome) {
 
 let _grafEmpresaId = '';
 let _statsInterval = null;
+let _statsAnterior = {total_leads:0, em_trial:0, follow_up:0, pra_fechar:0, mensagens_total:0};
+let _dispararParticula = null; // será preenchido pelo initGraph
 
 async function carregarStatsReais(id) {
   try {
     const r = await fetch(API_URL + '/stats/' + id);
     if (!r.ok) return;
     const d = await r.json();
-    _cnts.l = d.total_leads || 0;
-    _cnts.tr = d.em_trial || 0;
-    _cnts.f = d.follow_up || 0;
-    _cnts.fc = d.pra_fechar || 0;
-    _cnts.t = d.mensagens_total || 0;
-    document.getElementById('cnt-t').textContent = _cnts.t;
-    document.getElementById('cnt-l').textContent = _cnts.l;
-    document.getElementById('cnt-tr').textContent = _cnts.tr;
-    document.getElementById('cnt-f').textContent = _cnts.f;
-    document.getElementById('cnt-fc').textContent = _cnts.fc;
+
+    // Calcula delta — quantas coisas mudaram desde o último poll
+    const deltaMsg = Math.max(0, (d.mensagens_total||0) - _statsAnterior.mensagens_total);
+    const deltaLeads = Math.max(0, (d.total_leads||0) - _statsAnterior.total_leads);
+
+    // Atualiza contadores na tela com dados reais
+    document.getElementById('cnt-t').textContent = d.mensagens_total || 0;
+    document.getElementById('cnt-l').textContent = d.total_leads || 0;
+    document.getElementById('cnt-tr').textContent = d.em_trial || 0;
+    document.getElementById('cnt-f').textContent = d.follow_up || 0;
+    document.getElementById('cnt-fc').textContent = d.pra_fechar || 0;
+
+    // Dispara partículas proporcionais à atividade detectada
+    if (_dispararParticula && (deltaMsg > 0 || deltaLeads > 0)) {
+      const n = Math.min(deltaMsg + deltaLeads * 2, 8); // máx 8 partículas por poll
+      for (let i = 0; i < n; i++) {
+        setTimeout(() => { if (_dispararParticula) _dispararParticula(); }, i * 200);
+      }
+    }
+
+    // Se não tem atividade nenhuma — sem partículas (idle)
+    _statsAnterior = {
+      total_leads: d.total_leads || 0,
+      em_trial: d.em_trial || 0,
+      follow_up: d.follow_up || 0,
+      pra_fechar: d.pra_fechar || 0,
+      mensagens_total: d.mensagens_total || 0
+    };
   } catch(e) {}
 }
 
-// Poll a cada 10s enquanto o graph estiver aberto
 function iniciarPollStats(id) {
   if (_statsInterval) clearInterval(_statsInterval);
+  _statsAnterior = {total_leads:0, em_trial:0, follow_up:0, pra_fechar:0, mensagens_total:0};
   _statsInterval = setInterval(() => {
     if (document.getElementById('graphView').classList.contains('active')) {
       carregarStatsReais(id);
     } else {
       clearInterval(_statsInterval);
+      _dispararParticula = null;
     }
   }, 10000);
 }
@@ -903,31 +924,13 @@ function initGraph() {
     if(!last) last=ts;
     const dt=Math.min(ts-last,50); last=ts;
     E.forEach(e => {
-      e.tm+=dt;
-      if(e.tm>=e.rate) {
-        e.tm=0;
-        e.pts.push({p:.02,s:.00022+Math.random()*.0001});
-        e.f.pulse=Math.min(1,(e.f.pulse||0)+.5);
-        _cnts.t++;
-        const r=Math.random();
-        if(r<.45)_cnts.l++;
-        if(r<.18)_cnts.tr++;
-        if(r<.07)_cnts.f++;
-        if(r<.025)_cnts.fc++;
-        updCnts();
-      }
+      // Move partículas existentes — NÃO cria novas aqui
       e.pts=e.pts.filter(p=>{
         p.p+=p.s*dt;
         if(p.p>=.98){e.t.pulse=Math.min(1,(e.t.pulse||0)+.6);return false;}
         return true;
       });
       if(e.bidir) {
-        e.rtm+=dt;
-        if(e.rtm>=e.rate*1.4){
-          e.rtm=0;
-          e.rpts.push({p:.02,s:.0002+Math.random()*.00008});
-          e.t.pulse=Math.min(1,(e.t.pulse||0)+.4);
-        }
         e.rpts=e.rpts.filter(p=>{
           p.p+=p.s*dt;
           if(p.p>=.98){e.f.pulse=Math.min(1,(e.f.pulse||0)+.5);return false;}
@@ -948,6 +951,18 @@ function initGraph() {
   if(_raf){cancelAnimationFrame(_raf);_raf=null;}
   _raf=requestAnimationFrame(frame);
   iniciarPollStats(_grafEmpresaId);
+
+  // Registra função que o poll usa para disparar partículas reais
+  _dispararParticula = function() {
+    // Dispara uma partícula aleatória numa aresta aleatória
+    const aresta = E[Math.floor(Math.random() * E.length)];
+    aresta.pts.push({p:.02, s:.00022 + Math.random()*.0001});
+    aresta.f.pulse = Math.min(1, (aresta.f.pulse||0) + .5);
+    if (aresta.bidir && Math.random() > .6) {
+      aresta.rpts.push({p:.02, s:.0002 + Math.random()*.00008});
+      aresta.t.pulse = Math.min(1, (aresta.t.pulse||0) + .4);
+    }
+  };
 }
 
 // ─────────────────────────────────────────────
