@@ -399,6 +399,33 @@ aguardando mensagem...
   </div>
 </div>
 
+<!-- ── MENU DE EDIÇÃO ── -->
+<div id="edit-menu" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);align-items:center;justify-content:center" onclick="if(event.target===this)fecharMenu()">
+  <div style="background:#0d0d18;border:1px solid #252540;border-radius:14px;padding:0;width:300px;overflow:hidden">
+    <div style="padding:18px 20px 14px;border-bottom:1px solid #1a1a2e">
+      <div style="font-size:14px;font-weight:600;color:#e2e2ef" id="menu-nome"></div>
+      <div style="font-size:10px;font-family:monospace;color:#3a3a60;margin-top:2px" id="menu-id"></div>
+    </div>
+    <div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px">
+      <button onclick="menuVerFluxo()" style="width:100%;padding:11px 14px;border-radius:8px;border:1px solid #252540;background:#12121e;color:#e2e2ef;font-size:12px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s" onmouseover="this.style.borderColor='#7c5cfc'" onmouseout="this.style.borderColor='#252540'">
+        Ver fluxo ao vivo
+      </button>
+      <button onclick="menuEditarAgente()" style="width:100%;padding:11px 14px;border-radius:8px;border:1px solid #252540;background:#12121e;color:#e2e2ef;font-size:12px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s" onmouseover="this.style.borderColor='#7c5cfc'" onmouseout="this.style.borderColor='#252540'">
+        Editar configurações
+      </button>
+      <button id="menu-toggle" onclick="menuToggleAtivo()" style="width:100%;padding:11px 14px;border-radius:8px;border:1px solid;background:transparent;font-size:12px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s">
+      </button>
+      <div style="height:1px;background:#1a1a2e;margin:2px 0"></div>
+      <button onclick="menuExcluir()" style="width:100%;padding:11px 14px;border-radius:8px;border:1px solid rgba(255,71,87,.2);background:rgba(255,71,87,.05);color:#ff4757;font-size:12px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s" onmouseover="this.style.borderColor='#ff4757'" onmouseout="this.style.borderColor='rgba(255,71,87,.2)'">
+        Excluir permanentemente
+      </button>
+    </div>
+    <div style="padding:10px 12px;border-top:1px solid #1a1a2e">
+      <button onclick="fecharMenu()" style="width:100%;padding:8px;border-radius:6px;border:1px solid #1a1a2e;background:transparent;color:#3a3a60;font-size:11px;cursor:pointer">cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── TOAST ── -->
 <div class="toast" id="toast"></div>
 
@@ -583,8 +610,7 @@ async function carregarEmpresas() {
         </div>
       </div>
       <div class="cbtns">
-        <button class="btn btn-sm btn-danger" onclick="desativarEmpresa('${e.empresa_id}')">Desativar</button>
-        <button class="btn btn-sm btn-accent" onclick="abrirGraph('${e.empresa_id}','${e.nome}')">Ver Fluxo</button>
+        <button class="btn btn-sm btn-accent" style="flex:1" onclick="abrirMenu('${e.empresa_id}','${e.nome}',${e.ativo})">Editar</button>
       </div>
     </div>`;
   });
@@ -598,15 +624,139 @@ async function carregarEmpresas() {
   grid.innerHTML = html;
 }
 
-async function desativarEmpresa(id) {
-  if (!confirm('Desativar ' + id + '?')) return;
+// ─────────────────────────────────────────────
+// MENU DE EDIÇÃO
+// ─────────────────────────────────────────────
+let _menuEmpresa = null;
+
+function abrirMenu(id, nome, ativo) {
+  _menuEmpresa = {id, nome, ativo};
+  document.getElementById('menu-nome').textContent = nome;
+  document.getElementById('menu-id').textContent = id;
+  const btnToggle = document.getElementById('menu-toggle');
+  btnToggle.textContent = ativo ? 'Desativar' : 'Ativar';
+  btnToggle.style.background = ativo ? 'rgba(255,71,87,.1)' : 'rgba(0,208,132,.1)';
+  btnToggle.style.borderColor = ativo ? 'rgba(255,71,87,.3)' : 'rgba(0,208,132,.3)';
+  btnToggle.style.color = ativo ? '#ff4757' : '#00d084';
+  document.getElementById('edit-menu').style.display = 'flex';
+}
+
+function fecharMenu() {
+  document.getElementById('edit-menu').style.display = 'none';
+  _menuEmpresa = null;
+}
+
+async function menuEditarAgente() {
+  if (!_menuEmpresa) return;
+  fecharMenu();
+  // Carrega dados completos e pré-preenche o wizard
   try {
-    await fetch(API_URL + '/empresas/' + id, {method:'DELETE'});
-    toast('Agente desativado');
+    const r = await fetch(API_URL + '/empresas/' + _menuEmpresa.id);
+    if (!r.ok) throw new Error('Não encontrado');
+    const d = await r.json();
+    abrirWizard();
+    // Preenche campos com dados existentes
+    const campos = [
+      'empresa_id','nome','responsavel_nome','responsavel_whatsapp',
+      'modelo_ia','temperatura','prompt','buffer_janela_segundos',
+      'zapi_instance_id','zapi_token','zapi_client_token',
+      'openai_api_key','webhook_notificacao_url'
+    ];
+    campos.forEach(f => {
+      const el = document.getElementById('f-' + f);
+      if (el && d[f] !== null && d[f] !== undefined) el.value = d[f];
+    });
+    // Empresa já existe — ao salvar usa PUT
+    document.getElementById('f-empresa_id').disabled = true;
+    document.getElementById('btn-criar').textContent = 'Salvar alterações';
+    document.getElementById('btn-criar').onclick = () => salvarEdicao(_menuEmpresa?.id || d.empresa_id);
+    toast('Dados carregados para edição');
+  } catch(e) {
+    toast('Erro ao carregar dados: ' + e.message, false);
+  }
+}
+
+async function menuToggleAtivo() {
+  if (!_menuEmpresa) return;
+  const {id, ativo} = _menuEmpresa;
+  try {
+    if (ativo) {
+      await fetch(API_URL + '/empresas/' + id, {method:'DELETE'});
+      toast('Agente desativado');
+    } else {
+      await fetch(API_URL + '/ativar/' + id, {method:'POST'});
+      toast('Agente ativado!');
+    }
+    fecharMenu();
     carregarEmpresas();
   } catch(e) {
-    toast('Erro ao desativar', false);
+    toast('Erro: ' + e.message, false);
   }
+}
+
+async function menuExcluir() {
+  if (!_menuEmpresa) return;
+  if (!confirm('Excluir permanentemente "' + _menuEmpresa.nome + '"? Essa ação não pode ser desfeita.')) return;
+  try {
+    // Deleta do Supabase permanentemente
+    await fetch(API_URL + '/empresas/' + _menuEmpresa.id + '?permanent=true', {method:'DELETE'});
+    toast('Agente excluído permanentemente');
+    fecharMenu();
+    carregarEmpresas();
+  } catch(e) {
+    toast('Erro ao excluir: ' + e.message, false);
+  }
+}
+
+async function menuVerFluxo() {
+  if (!_menuEmpresa) return;
+  fecharMenu();
+  abrirGraph(_menuEmpresa.id, _menuEmpresa.nome);
+}
+
+async function salvarEdicao(id) {
+  const btn = document.getElementById('btn-criar');
+  btn.textContent = 'Salvando...';
+  btn.disabled = true;
+  const payload = {
+    empresa_id: id,
+    nome: document.getElementById('f-nome').value.trim(),
+    responsavel_nome: document.getElementById('f-responsavel_nome').value.trim(),
+    responsavel_whatsapp: document.getElementById('f-responsavel_whatsapp').value.trim(),
+    modelo_ia: document.getElementById('f-modelo_ia').value,
+    temperatura: parseFloat(document.getElementById('f-temperatura').value) || 0.5,
+    prompt: document.getElementById('f-prompt').value.trim(),
+    buffer_janela_segundos: parseFloat(document.getElementById('f-buffer_janela_segundos').value) || 8,
+    zapi_instance_id: document.getElementById('f-zapi_instance_id').value.trim(),
+    zapi_token: document.getElementById('f-zapi_token').value.trim(),
+    zapi_client_token: document.getElementById('f-zapi_client_token').value.trim(),
+    openai_api_key: document.getElementById('f-openai_api_key').value.trim(),
+    webhook_notificacao_url: document.getElementById('f-webhook_notificacao_url').value.trim(),
+    fluxo_comercial: getToggle('fluxo_comercial'),
+    fluxo_suporte: getToggle('fluxo_suporte'),
+    fluxo_followup: getToggle('fluxo_followup'),
+    fluxo_caso_sensivel: getToggle('fluxo_caso_sensivel'),
+    portao_liberacao: getToggle('portao_liberacao'),
+    ativo: true
+  };
+  try {
+    const r = await fetch(API_URL + '/empresas/' + id, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error((await r.json()).detail || 'Erro');
+    toast('Alterações salvas!');
+    showScr('home');
+    carregarEmpresas();
+  } catch(e) {
+    toast('Erro: ' + e.message, false);
+  }
+  btn.textContent = 'Salvar alterações';
+  btn.disabled = false;
+  document.getElementById('f-empresa_id').disabled = false;
+  document.getElementById('btn-criar').textContent = 'Criar agente';
+  document.getElementById('btn-criar').onclick = criarAgente;
 }
 
 // ─────────────────────────────────────────────
