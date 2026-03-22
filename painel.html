@@ -1220,18 +1220,25 @@ function initGraph() {
       document.getElementById('tt-desc').textContent = hit.desc;
       tt.style.display = 'block';
 
-      // Centra o tooltip abaixo do nó no viewport
-      const nodeScreenX = rect.left + (hit.cx / cw) * rect.width;
-      const nodeScreenY = rect.top + ((hit.cy + hit.h/2) / 360) * rect.height;
-
       const ttW = 200;
-      let left = nodeScreenX - ttW / 2;
-      // Evita sair da tela
-      left = Math.max(8, Math.min(left, window.innerWidth - ttW - 8));
+      const nodeScreenX  = rect.left + (hit.cx / cw) * rect.width;
+      const nodeTop      = rect.top  + ((hit.cy - hit.h/2) / 360) * rect.height;
+      const nodeBottom   = rect.top  + ((hit.cy + hit.h/2) / 360) * rect.height;
+      const canvasMid    = rect.top  + rect.height / 2;
 
-      tt.style.left = left + 'px';
-      tt.style.top = (nodeScreenY + 10) + 'px';
+      let left = nodeScreenX - ttW / 2;
+      left = Math.max(8, Math.min(left, window.innerWidth - ttW - 8));
+      tt.style.left  = left + 'px';
       tt.style.width = ttW + 'px';
+
+      // Nós na metade inferior → tooltip aparece acima; metade superior → abaixo
+      if (nodeBottom > canvasMid) {
+        // Renderiza primeiro para pegar a altura real
+        const ttH = tt.offsetHeight || 90;
+        tt.style.top = (nodeTop - ttH - 10) + 'px';
+      } else {
+        tt.style.top = (nodeBottom + 10) + 'px';
+      }
     } else {
       tt.style.display = 'none';
     }
