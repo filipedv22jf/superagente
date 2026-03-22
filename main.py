@@ -649,6 +649,13 @@ async def deletar_empresa(empresa_id: str, permanent: bool = False):
     """Desativa ou exclui permanentemente uma empresa."""
     try:
         if permanent:
+            # Remove dados relacionados antes (foreign key constraint)
+            _supabase.table("conversas").delete().eq("empresa_id", empresa_id).execute()
+            _supabase.table("leads").delete().eq("empresa_id", empresa_id).execute()
+            try:
+                _supabase.table("webhook_dedup").delete().eq("empresa_id", empresa_id).execute()
+            except Exception:
+                pass
             _supabase.table("empresas").delete().eq("empresa_id", empresa_id).execute()
             log.info(f"🗑️ Excluída permanentemente: {empresa_id}")
         else:
