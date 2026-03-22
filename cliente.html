@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central de Atendimento</title>
+<link rel="icon" type="image/png" href="icone.png"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080e;--bg2:#0b0c18;--bg3:#10111c;--bg4:#151626;
+  --border:#191a2e;--border2:#23243c;--border3:#2e2f50;
+  --accent:#6d4fff;--accent2:#5038d8;--accent-glow:rgba(109,79,255,.14);
+  --green:#00c878;--green-dim:rgba(0,200,120,.08);
+  --amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;
+  --text:#e8e9f4;--text2:#5c5e90;--text3:#2c2e48;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',-apple-system,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+
+/* LIGHT MODE */
+body.light{
+  --bg:#f4f5fb;--bg2:#fff;--bg3:#eef0f9;--bg4:#e6e9f5;
+  --border:#dce0f0;--border2:#c8cce8;--border3:#b4b8d8;
+  --accent:#5038d8;--accent2:#3b28b0;
+  --green:#00906a;--amber:#b45309;--red:#dc2626;--blue:#1d4ed8;
+  --text:#0d0e22;--text2:#4040a0;--text3:#8888b8;
+}
+body.light .tb{background:#fff;border-color:#dce0f0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+body.light .card,.light .stat-card,.light .lead-row{background:#fff;border-color:#dce0f0}
+body.light .badge{border-color:currentColor}
+body.light .section-label{color:#9898c0}
+
+/* TOPBAR */
+.tb{display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 20px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.tb-left{display:flex;align-items:center;gap:10px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.4;box-shadow:0 0 3px var(--green)}}
+.empresa-nome{font-size:14px;font-weight:600;color:var(--text)}
+.empresa-id{font-size:10px;font-family:var(--mono);color:var(--text3);margin-left:4px}
+.tb-right{display:flex;align-items:center;gap:8px}
+
+/* NAV TABS */
+.nav{display:flex;gap:2px;background:var(--bg3);border-radius:8px;padding:3px;border:1px solid var(--border)}
+.nav-btn{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s;font-family:var(--sans)}
+.nav-btn.active{background:var(--accent);color:#fff}
+.nav-btn:hover:not(.active){color:var(--text);background:var(--border)}
+
+/* BUTTONS */
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all .15s;font-family:var(--sans)}
+.btn:hover{border-color:var(--accent);color:var(--text)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{background:var(--accent2)}
+.btn-green{background:rgba(0,200,120,.12);color:var(--green);border-color:rgba(0,200,120,.3)}
+.btn-green:hover{background:rgba(0,200,120,.2)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-xs{padding:2px 8px;font-size:10px}
+.theme-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.theme-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* SCREENS */
+.scr{display:none;padding:20px;max-width:1100px;margin:0 auto}
+.scr.active{display:block}
+
+/* SECTION LABEL */
+.section-label{font-size:9px;font-family:var(--mono);color:var(--text3);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.stat-val{font-size:28px;font-weight:600;font-family:var(--mono);margin-bottom:4px}
+.stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
+
+/* FILA DE LIBERAÇÃO */
+.queue-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.lead-row{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px;transition:border-color .15s}
+.lead-row:hover{border-color:var(--border2)}
+.lead-avatar{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.lead-info{flex:1;min-width:0}
+.lead-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lead-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.lead-time{font-size:10px;color:var(--text3);font-family:var(--mono);flex-shrink:0}
+
+/* BADGE */
+.badge{font-size:9px;font-family:var(--mono);padding:2px 8px;border-radius:4px;letter-spacing:.3px;border:1px solid;flex-shrink:0}
+.badge-wait{color:#f59e0b;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
+.badge-human{color:#ef4444;border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08)}
+.badge-trial{color:#3b82f6;border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.08)}
+.badge-followup{color:#8b5cf6;border-color:rgba(139,92,246,.3);background:rgba(139,92,246,.08)}
+.badge-ok{color:#00c878;border-color:rgba(0,200,120,.3);background:rgba(0,200,120,.08)}
+.badge-inativo{color:var(--text3);border-color:var(--border2);background:transparent}
+
+/* NOTIFICAÇÕES */
+.notif-list{display:flex;flex-direction:column;gap:6px}
+.notif-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
+.notif-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.notif-body{flex:1}
+.notif-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px}
+.notif-desc{font-size:11px;color:var(--text2);line-height:1.5}
+.notif-time{font-size:10px;color:var(--text3);font-family:var(--mono);flex-shrink:0}
+.notif-new{border-color:var(--accent);background:rgba(109,79,255,.04)}
+
+/* TABS DENTRO DE TELA */
+.inner-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.inner-tab{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2);transition:all .15s;font-family:var(--sans)}
+.inner-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* LOADING */
+.loading{display:flex;align-items:center;gap:8px;color:var(--text3);font-size:12px;padding:20px 0}
+.spin{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:32px;margin-bottom:10px;opacity:.4}
+.empty-text{font-size:12px;font-family:var(--mono);letter-spacing:.5px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:12px;font-weight:500;z-index:999;transform:translateY(60px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-ok{background:#1a3a2a;border:1px solid rgba(0,200,120,.3);color:var(--green)}
+.toast-err{background:#3a1a1a;border:1px solid rgba(239,68,68,.3);color:var(--red)}
+
+/* PING BADGE */
+.ping-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:10px;min-width:16px;height:16px;padding:0 4px;margin-left:4px;font-family:var(--mono)}
+
+@media(max-width:600px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .tb{padding:0 12px}
+  .empresa-id{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="tb">
+  <div class="tb-left">
+    <div class="logo-dot"></div>
+    <span class="empresa-nome" id="tb-nome">Carregando...</span>
+    <span class="empresa-id" id="tb-id"></span>
+  </div>
+  <div class="tb-right">
+    <nav class="nav">
+      <button class="nav-btn active" onclick="mudarAba('leads')">Leads</button>
+      <button class="nav-btn" id="nav-notif" onclick="mudarAba('notificacoes')">Notificações</button>
+    </nav>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Alternar tema">
+      <svg id="theme-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ABA LEADS -->
+<div id="scr-leads" class="scr active">
+  <!-- Stats -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card"><div class="stat-val" id="s-total" style="color:var(--text)">—</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-aguardando" style="color:var(--amber)">—</div><div class="stat-lbl">Aguardando</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-atendimento" style="color:var(--accent)">—</div><div class="stat-lbl">Em atendimento</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-trial" style="color:var(--blue)">—</div><div class="stat-lbl">Em trial</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-fechar" style="color:var(--red)">—</div><div class="stat-lbl">Pra fechar</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-followup" style="color:#8b5cf6">—</div><div class="stat-lbl">Follow-up</div></div>
+  </div>
+
+  <!-- Fila liberação -->
+  <div id="sec-fila" style="display:none">
+    <div class="section-label">fila de liberação</div>
+    <div class="queue-list" id="fila-list"></div>
+  </div>
+
+  <!-- Todos os leads -->
+  <div class="section-label" style="margin-top:8px">leads</div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="filtrarLeads('')">Todos</button>
+    <button class="inner-tab" onclick="filtrarLeads('CONTINUAR')">Ativos</button>
+    <button class="inner-tab" onclick="filtrarLeads('AGUARDAR_FOLLOW_UP')">Follow-up</button>
+    <button class="inner-tab" onclick="filtrarLeads('PASSAR_HUMANO')">Pra fechar</button>
+    <button class="inner-tab" onclick="filtrarLeads('ACESSO_LIBERADO')">Trial</button>
+    <button class="inner-tab" onclick="filtrarLeads('FINALIZADO_SUCESSO')">Finalizados</button>
+  </div>
+  <div class="queue-list" id="leads-list">
+    <div class="loading"><div class="spin"></div> Carregando leads...</div>
+  </div>
+</div>
+
+<!-- ABA NOTIFICAÇÕES -->
+<div id="scr-notificacoes" class="scr">
+  <div class="section-label">notificações recentes</div>
+  <div class="notif-list" id="notif-list">
+    <div class="loading"><div class="spin"></div> Carregando...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────
+const API_BASE = '';
+const PATH = location.pathname; // /cliente/mindmed
+const EMPRESA_ID = PATH.split('/').filter(Boolean).pop() || '';
+const TOKEN = new URLSearchParams(location.search).get('token') || '';
+
+// ── ESTADO ──────────────────────────────────
+let _todosLeads = [];
+let _filtroAtual = '';
+let _notifNovos = 0;
+let _pollInterval = null;
+
+// ── TEMA ────────────────────────────────────
+const ICON_MOON = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+const ICON_SUN  = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+function toggleTheme() {
+  const l = document.body.classList.toggle('light');
+  document.getElementById('theme-icon').innerHTML = l ? ICON_SUN : ICON_MOON;
+  localStorage.setItem('cliente_theme', l ? 'light' : 'dark');
+}
+if (localStorage.getItem('cliente_theme') === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('theme-icon').innerHTML = ICON_SUN;
+}
+
+// ── TOAST ────────────────────────────────────
+function toast(msg, ok = true) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (ok ? 'toast-ok' : 'toast-err');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── ABAS ─────────────────────────────────────
+function mudarAba(aba) {
+  document.querySelectorAll('.scr').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('scr-' + aba).classList.add('active');
+  event.target.classList.add('active');
+  if (aba === 'notificacoes') {
+    _notifNovos = 0;
+    atualizarBadgeNotif();
+    carregarNotificacoes();
+  }
+}
+
+function atualizarBadgeNotif() {
+  const btn = document.getElementById('nav-notif');
+  const badge = btn.querySelector('.ping-badge');
+  if (_notifNovos > 0) {
+    if (!badge) btn.insertAdjacentHTML('beforeend', `<span class="ping-badge">${_notifNovos}</span>`);
+    else badge.textContent = _notifNovos;
+  } else if (badge) badge.remove();
+}
+
+// ── UTILS ────────────────────────────────────
+function qs(path) {
+  return `${API_BASE}${path}?token=${encodeURIComponent(TOKEN)}`;
+}
+
+function tempoRelativo(iso) {
+  if (!iso) return '—';
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 60)   return 'agora';
+  if (diff < 3600) return Math.floor(diff/60) + 'min';
+  if (diff < 86400)return Math.floor(diff/3600) + 'h';
+  return Math.floor(diff/86400) + 'd';
+}
+
+function badgeStatus(status) {
+  const map = {
+    'AGUARDANDO_LIBERACAO': ['Aguardando', 'badge-wait'],
+    'CONTINUAR':            ['Ativo',      'badge-ok'],
+    'PASSAR_HUMANO':        ['Pra fechar', 'badge-human'],
+    'AGUARDAR_FOLLOW_UP':   ['Follow-up',  'badge-followup'],
+    'ACESSO_LIBERADO':      ['Trial',      'badge-trial'],
+    'CADASTRO_ENVIADO':     ['Cadastro',   'badge-trial'],
+    'FINALIZADO_SUCESSO':   ['Sucesso',    'badge-ok'],
+    'FINALIZADO_RECUSOU':   ['Recusou',    'badge-inativo'],
+    'FINALIZADO_INATIVO':   ['Inativo',    'badge-inativo'],
+    'FINALIZADO_NAO_QUALIFICADO': ['Não qualif.', 'badge-inativo'],
+  };
+  const [label, cls] = map[status] || [status, 'badge-inativo'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function avatarColors(idx) {
+  const paleta = [
+    {bg:'rgba(109,79,255,.15)',color:'#9d7dff'},
+    {bg:'rgba(0,200,120,.12)', color:'#00c878'},
+    {bg:'rgba(59,130,246,.12)',color:'#3b82f6'},
+    {bg:'rgba(245,158,11,.12)',color:'#f59e0b'},
+    {bg:'rgba(239,68,68,.12)', color:'#ef4444'},
+  ];
+  return paleta[idx % paleta.length];
+}
+
+function initials(nome) {
+  return (nome||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+}
+
+// ── STATS ─────────────────────────────────────
+async function carregarStats() {
+  try {
+    const r = await fetch(qs(`/api/cliente/${EMPRESA_ID}/stats`));
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('s-total').textContent     = d.total || 0;
+    document.getElementById('s-aguardando').textContent= d.aguardando || 0;
+    document.getElementById('s-atendimento').textContent = d.em_atendimento || 0;
+    document.getElementById('s-trial').textContent     = d.em_trial || 0;
+    document.getElementById('s-fechar').textContent    = d.pra_fechar || 0;
+    document.getElementById('s-followup').textContent  = d.follow_up || 0;
+  } catch(e) {}
+}
+
+// ── FILA DE LIBERAÇÃO ─────────────────────────
+function renderFila(leads) {
+  const fila = leads.filter(l => l.status_conversa === 'AGUARDANDO_LIBERACAO');
+  const sec = document.getElementById('sec-fila');
+  const list = document.getElementById('fila-list');
+  if (!fila.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  list.innerHTML = fila.map((l, i) => {
+    const av = avatarColors(i);
+    return `
+    <div class="lead-row">
+      <div class="lead-avatar" style="background:${av.bg};color:${av.color}">${initials(l.nome_aluno)}</div>
+      <div class="lead-info">
+        <div class="lead-name">${l.nome_aluno || l.telefone}</div>
+        <div class="lead-sub">${l.telefone} · ${l.primeira_mensagem ? '"' + l.primeira_mensagem.slice(0,40) + '..."' : 'sem mensagem'}</div>
+      </div>
+      <span class="badge badge-wait" style="margin-right:8px">Aguardando</span>
+      <span class="lead-time">${tempoRelativo(l.updated_at)}</span>
+      <button class="btn btn-green btn-sm" style="margin-left:8px" onclick="liberarLead('${l.telefone}')">Liberar</button>
+    </div>`;
+  }).join('');
+}
+
+async function liberarLead(telefone) {
+  try {
+    const r = await fetch(`${API_BASE}/liberar/${EMPRESA_ID}/${telefone}`, {method:'POST'});
+    if (r.ok) { toast('Lead liberado!'); setTimeout(carregarLeads, 800); }
+    else toast('Erro ao liberar', false);
+  } catch(e) { toast('Erro: ' + e.message, false); }
+}
+
+// ── LEADS ─────────────────────────────────────
+async function carregarLeads() {
+  try {
+    const r = await fetch(qs(`/api/cliente/${EMPRESA_ID}/leads`));
+    if (!r.ok) return;
+    _todosLeads = await r.json();
+    renderFila(_todosLeads);
+    renderLeads(_filtroAtual);
+    carregarStats();
+  } catch(e) {
+    document.getElementById('leads-list').innerHTML =
+      '<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">erro ao carregar leads</div></div>';
+  }
+}
+
+function filtrarLeads(status) {
+  _filtroAtual = status;
+  document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  renderLeads(status);
+}
+
+function renderLeads(status) {
+  const list = document.getElementById('leads-list');
+  const filtrados = status ? _todosLeads.filter(l => l.status_conversa === status) : _todosLeads;
+  if (!filtrados.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">☁</div><div class="empty-text">nenhum lead encontrado</div></div>';
+    return;
+  }
+  list.innerHTML = filtrados.map((l, i) => {
+    const av = avatarColors(i);
+    const msgsCnt = l.contador_mensagens || 0;
+    return `
+    <div class="lead-row">
+      <div class="lead-avatar" style="background:${av.bg};color:${av.color}">${initials(l.nome_aluno)}</div>
+      <div class="lead-info">
+        <div class="lead-name">${l.nome_aluno || l.telefone}</div>
+        <div class="lead-sub">${l.telefone}${l.fase ? ' · ' + l.fase : ''} · ${msgsCnt} msg${msgsCnt !== 1 ? 's' : ''}</div>
+      </div>
+      ${badgeStatus(l.status_conversa)}
+      <span class="lead-time" style="margin-left:8px">${tempoRelativo(l.updated_at)}</span>
+      ${l.status_conversa === 'PASSAR_HUMANO' ? `<a href="https://wa.me/${l.telefone}" target="_blank" class="btn btn-sm btn-accent" style="margin-left:8px">Abrir WA</a>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── NOTIFICAÇÕES ─────────────────────────────
+async function carregarNotificacoes() {
+  const list = document.getElementById('notif-list');
+  try {
+    const r = await fetch(qs(`/api/cliente/${EMPRESA_ID}/notificacoes`));
+    if (!r.ok) { list.innerHTML = '<div class="empty"><div class="empty-icon">☁</div><div class="empty-text">erro ao carregar</div></div>'; return; }
+    const dados = await r.json();
+    if (!dados.length) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><div class="empty-text">nenhuma notificação</div></div>';
+      return;
+    }
+    const icones = {
+      'AGUARDANDO_LIBERACAO': {icon:'⏳', bg:'rgba(245,158,11,.12)', lbl:'Novo contato aguardando liberação'},
+      'PASSAR_HUMANO':        {icon:'🔴', bg:'rgba(239,68,68,.1)',   lbl:'Lead pronto para fechar'},
+      'ACESSO_LIBERADO':      {icon:'🟢', bg:'rgba(0,200,120,.1)',   lbl:'Trial liberado com sucesso'},
+      'CADASTRO_ENVIADO':     {icon:'📋', bg:'rgba(59,130,246,.1)',  lbl:'Cadastro enviado'},
+    };
+    list.innerHTML = dados.map((n, i) => {
+      const cfg = icones[n.status_conversa] || {icon:'📣', bg:'rgba(109,79,255,.1)', lbl: n.status_conversa};
+      const novo = i < 3 ? 'notif-new' : '';
+      return `
+      <div class="notif-item ${novo}">
+        <div class="notif-icon" style="background:${cfg.bg}">${cfg.icon}</div>
+        <div class="notif-body">
+          <div class="notif-title">${cfg.lbl}</div>
+          <div class="notif-desc">${n.nome_aluno || n.telefone} · ${n.telefone}</div>
+        </div>
+        <div class="notif-time">${tempoRelativo(n.updated_at)}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">erro ao carregar</div></div>';
+  }
+}
+
+// ── POLL ─────────────────────────────────────
+function iniciarPoll() {
+  carregarLeads();
+  carregarNotificacoes();
+  _pollInterval = setInterval(async () => {
+    await carregarLeads();
+    // Verifica novos itens na fila para badge
+    const novos = _todosLeads.filter(l => l.status_conversa === 'AGUARDANDO_LIBERACAO').length;
+    if (novos > 0 && !document.getElementById('scr-notificacoes').classList.contains('active')) {
+      _notifNovos = novos;
+      atualizarBadgeNotif();
+    }
+  }, 15000);
+}
+
+// ── INIT ─────────────────────────────────────
+async function init() {
+  if (!EMPRESA_ID) {
+    document.getElementById('tb-nome').textContent = 'Empresa não encontrada';
+    return;
+  }
+  // Busca nome da empresa
+  try {
+    const r = await fetch(qs(`/api/cliente/${EMPRESA_ID}/stats`));
+    if (r.status === 403) {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666">Acesso negado. Token inválido.</div>';
+      return;
+    }
+  } catch(e) {}
+
+  document.getElementById('tb-nome').textContent = EMPRESA_ID.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  document.getElementById('tb-id').textContent = EMPRESA_ID;
+
+  iniciarPoll();
+}
+
+init();
+</script>
+</body>
+</html>
