@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AgênteHub</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#09090f;--bg2:#0d0d18;--bg3:#12121e;--bg4:#16162a;
-  --border:#1a1a2e;--border2:#252540;--border3:#303055;
-  --accent:#7c5cfc;--accent2:#5c3fd4;--accent-glow:rgba(124,92,252,.12);
-  --green:#00d084;--green-dim:rgba(0,208,132,.08);
-  --amber:#ffa502;--red:#ff4757;--blue:#378add;
-  --text:#e2e2ef;--text2:#7070a0;--text3:#3a3a60;
+  --bg:#07080e;--bg2:#0b0c18;--bg3:#10111c;--bg4:#151626;
+  --border:#191a2e;--border2:#23243c;--border3:#2e2f50;
+  --accent:#6d4fff;--accent2:#5038d8;--accent-glow:rgba(109,79,255,.14);
+  --green:#00c878;--green-dim:rgba(0,200,120,.08);
+  --amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;
+  --text:#e8e9f4;--text2:#5c5e90;--text3:#2c2e48;
   --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',-apple-system,sans-serif;
 }
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
 
 /* ── TOPBAR ── */
 .tb{display:flex;align-items:center;justify-content:space-between;height:50px;padding:0 20px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
@@ -39,12 +40,46 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
   background:linear-gradient(180deg,#1a9e62 0%,#0d6e42 100%);
   color:#afffda;
   border:1px solid #00d084;
-  box-shadow:0 2px 0 #0a4a2c, 0 0 12px rgba(0,208,132,.25), inset 0 1px 0 rgba(255,255,255,.12);
+  box-shadow:0 3px 0 #0a4a2c,0 0 12px rgba(0,208,132,.25),inset 0 1px 0 rgba(255,255,255,.12);
   text-shadow:0 1px 2px rgba(0,0,0,.4);
-  transform:translateY(0);
-  transition:all .1s;
+  animation:float 3s ease-in-out infinite;
   cursor:default;
 }
+@keyframes float{
+  0%,100%{transform:translateY(0);box-shadow:0 3px 0 #0a4a2c,0 0 12px rgba(0,208,132,.25),inset 0 1px 0 rgba(255,255,255,.12)}
+  50%{transform:translateY(-3px);box-shadow:0 6px 0 #0a4a2c,0 0 20px rgba(0,208,132,.35),inset 0 1px 0 rgba(255,255,255,.15)}
+}
+/* ── MODO CLARO PROFISSIONAL ── */
+body.light{
+  --bg:#f4f5fb;--bg2:#ffffff;--bg3:#eef0f9;--bg4:#e6e9f5;
+  --border:#dce0f0;--border2:#c8cce8;--border3:#b4b8d8;
+  --accent:#5038d8;--accent2:#3b28b0;--accent-glow:rgba(80,56,216,.1);
+  --green:#00906a;--green-dim:rgba(0,144,106,.07);
+  --amber:#b45309;--red:#dc2626;--blue:#1d4ed8;
+  --text:#0d0e22;--text2:#4040a0;--text3:#8888b8;
+}
+body.light .tb{background:#fff;border-color:#dce0f0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+body.light .card{background:#fff;border-color:#dce0f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+body.light .card:hover{box-shadow:0 4px 16px rgba(80,56,216,.1)!important;border-color:#c0c4e8!important}
+body.light .wiz-body,body.light .wiz-side,body.light .int-card,body.light .toggle-row{background:#fff;border-color:#dce0f0}
+body.light .finput{background:#f8f9ff;border-color:#ccd0ec;color:var(--text)}
+body.light .finput:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(80,56,216,.07)}
+body.light .btn{background:#eef0f9;border-color:#ccd0ec;color:#4040a0}
+body.light .btn:hover{border-color:var(--accent);color:var(--accent);background:#e8eaf6}
+body.light .btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(80,56,216,.25)}
+body.light .btn-accent:hover{background:var(--accent2)}
+body.light .slabel{color:#9898c0}
+body.light .slabel::after{background:#dce0f0}
+body.light .cname{color:#0d0e22;font-weight:600}
+body.light .csub{color:#8888b8}
+body.light .new-card{border-color:#c8cce8}
+body.light .new-card:hover{background:rgba(80,56,216,.04);border-color:var(--accent)}
+body.light .wiz-side{background:#fafbff}
+body.light .ws-item.active{background:rgba(80,56,216,.06)}
+body.light .ws-item.done .ws-label{color:var(--green)}
+.theme-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+.theme-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 /* ── BUTTONS ── */
 .btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all .15s;font-family:inherit;letter-spacing:.2px}
@@ -171,6 +206,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 <div class="tb">
   <div class="logo"><span class="logo-dot"></span></div>
   <div class="tb-right">
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Alternar tema">
+      <svg id="theme-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
     <span class="pill pill-green" id="pill-count">carregando...</span>
     <button class="btn btn-accent" onclick="showScr('home')">Painel</button>
     <button class="btn btn-accent" onclick="abrirChat()">Chat teste</button>
@@ -211,7 +249,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
         <div class="ws-label">Integrações</div>
       </div>
       <div style="flex:1"></div>
-      <button class="btn" onclick="cancelarWizard()" style="width:100%;margin-top:16px;font-size:11px;color:var(--text3);text-align:center">← Cancelar</button>
+      <button class="btn" onclick="cancelarWizard()" style="width:100%;margin-top:16px;font-size:11px;text-align:center;border-color:rgba(255,71,87,.4);color:#ff4757;background:rgba(255,71,87,.08)">← Cancelar</button>
     </div>
 
     <div>
@@ -358,7 +396,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
     <div style="display:flex;align-items:center;gap:6px">
       <div class="live-dot"></div>
       <span style="font-size:10px;font-family:var(--mono);color:var(--green)">ao vivo</span>
-      <button class="btn btn-sm" style="margin-left:10px" onclick="showScr('home')">← voltar</button>
+      <button class="btn btn-sm btn-accent" style="margin-left:10px" onclick="showScr('home')">← Voltar</button>
     </div>
   </div>
   <canvas id="gc" height="360"></canvas>
@@ -380,12 +418,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
       </select>
       <span style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:1px">telefone simulado</span>
       <input id="chat-telefone" class="finput" style="width:160px;padding:5px 10px;font-size:12px" placeholder="5531999999999" value="5531000000001"/>
-      <button class="btn btn-sm" onclick="limparChat()" style="border-color:rgba(255,71,87,.3);color:var(--red);font-size:11px">limpar</button>
+      <button class="btn btn-sm" onclick="limparChat()" style="border-color:rgba(255,71,87,.4);color:#ff4757;background:rgba(255,71,87,.08);font-size:11px">Limpar</button>
     </div>
     <div style="display:flex;align-items:center;gap:6px">
       <div class="live-dot" style="animation:none;background:var(--green)"></div>
       <span style="font-size:10px;font-family:var(--mono);color:var(--green)">chat de teste</span>
-      <button class="btn btn-sm" style="margin-left:10px" onclick="showScr('home')">← voltar</button>
+      <button class="btn btn-sm btn-accent" style="margin-left:10px" onclick="showScr('home')">← Voltar</button>
     </div>
   </div>
 
@@ -1274,6 +1312,22 @@ async function enviarMsgChat() {
 const styleEl = document.createElement('style');
 styleEl.textContent = '@keyframes typing{from{opacity:.2;transform:translateY(0)}to{opacity:1;transform:translateY(-3px)}}';
 document.head.appendChild(styleEl);
+
+// ─────────────────────────────────────────────
+// TEMA CLARO / ESCURO
+// ─────────────────────────────────────────────
+const ICON_MOON = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+const ICON_SUN  = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+
+function toggleTheme() {
+  const light = document.body.classList.toggle('light');
+  document.getElementById('theme-icon').innerHTML = light ? ICON_SUN : ICON_MOON;
+  localStorage.setItem('theme', light ? 'light' : 'dark');
+}
+if (localStorage.getItem('theme') === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('theme-icon').innerHTML = ICON_SUN;
+}
 
 // ─────────────────────────────────────────────
 // INIT
