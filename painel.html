@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AgênteHub</title>
+  <link rel="icon" type="image/png" href="icone.png"/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -386,7 +387,7 @@ body.light .ws-item.done .ws-label{color:var(--green)}
 </div>
 
 <!-- ── GRAPH VIEW ── -->
-<div id="graphView" class="scr" style="padding:0">
+<div id="graphView" class="scr" style="padding:0;position:relative">
   <div class="gv-bar">
     <div class="gv-meta">
       <div class="gm">empresa: <em id="gv-empresa"></em></div>
@@ -394,12 +395,16 @@ body.light .ws-item.done .ws-label{color:var(--green)}
       <div class="gm">processadas: <em id="cnt-t">0</em></div>
     </div>
     <div style="display:flex;align-items:center;gap:6px">
-      <div class="live-dot"></div>
-      <span style="font-size:10px;font-family:var(--mono);color:var(--green)">ao vivo</span>
+      <span style="font-size:11px;font-family:var(--mono);padding:4px 12px;border-radius:6px;font-weight:500;letter-spacing:.3px;background:linear-gradient(180deg,#1a9e62 0%,#0d6e42 100%);color:#afffda;border:1px solid #00d084;box-shadow:0 3px 0 #0a4a2c,0 0 10px rgba(0,200,120,.2),inset 0 1px 0 rgba(255,255,255,.12);text-shadow:0 1px 2px rgba(0,0,0,.4);animation:float 3s ease-in-out infinite">AO VIVO</span>
       <button class="btn btn-sm btn-accent" style="margin-left:10px" onclick="showScr('home')">Voltar</button>
     </div>
   </div>
-  <canvas id="gc" height="360"></canvas>
+  <div id="node-tooltip" style="display:none;position:absolute;z-index:50;pointer-events:none;background:#0c0d18;border:1px solid #23243c;border-radius:8px;padding:10px 14px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.5)">
+    <div id="tt-title" style="font-size:12px;font-weight:600;color:#e8e9f4;margin-bottom:4px;font-family:'Inter',-apple-system,sans-serif"></div>
+    <div id="tt-sub" style="font-size:10px;color:#5c5e90;font-family:'JetBrains Mono',monospace;margin-bottom:6px"></div>
+    <div id="tt-desc" style="font-size:11px;color:#9090b8;line-height:1.6;font-family:'Inter',-apple-system,sans-serif"></div>
+  </div>
+  <canvas id="gc" height="360" style="display:block;width:100%"></canvas>
   <div class="gv-footer">
     <div class="gfi"><div class="gfv" id="cnt-l" style="color:var(--green)">0</div><div class="gfl">novos leads</div></div>
     <div class="gfi"><div class="gfv" id="cnt-tr" style="color:var(--accent)">0</div><div class="gfl">em trial</div></div>
@@ -1025,13 +1030,13 @@ function initGraph() {
   const sy = v => v * DH / DH;  // height stays 360
 
   const N = [
-    {id:'wa',   label:'WhatsApp',   sub:'entrada',       cx:68,  cy:160, w:104, h:44, col:'#00d084'},
-    {id:'gate', label:'Portão',     sub:'liberação',     cx:210, cy:160, w:110, h:44, col:'#7c5cfc'},
-    {id:'agt',  label:'Agente IA',  sub:'processa',      cx:390, cy:115, w:124, h:44, col:'#7c5cfc'},
-    {id:'zapi', label:'Z-API',      sub:'resposta',      cx:560, cy:115, w:104, h:44, col:'#00d084'},
-    {id:'db',   label:'Supabase',   sub:'dados',         cx:260, cy:270, w:110, h:44, col:'#378add'},
-    {id:'oai',  label:'OpenAI',     sub:'gpt-4o-mini',   cx:400, cy:270, w:110, h:44, col:'#9d7dff'},
-    {id:'sch',  label:'Scheduler',  sub:'follow-ups',    cx:555, cy:270, w:110, h:44, col:'#ffa502'},
+    {id:'wa',   label:'WhatsApp',   sub:'entrada',       cx:68,  cy:160, w:104, h:44, col:'#00d084', desc:'Recebe mensagens dos leads via Z-API. Ponto de entrada de todo o fluxo.'},
+    {id:'gate', label:'Portão',     sub:'liberação',     cx:210, cy:160, w:110, h:44, col:'#7c5cfc', desc:'Controla quem o agente responde. Novos leads aguardam liberação manual no painel.'},
+    {id:'agt',  label:'Agente IA',  sub:'processa',      cx:390, cy:115, w:124, h:44, col:'#7c5cfc', desc:'Cérebro do sistema. Usa o prompt configurado para entender e responder. Executa até 5 iterações por mensagem.'},
+    {id:'zapi', label:'Z-API',      sub:'resposta',      cx:560, cy:115, w:104, h:44, col:'#00d084', desc:'Envia as respostas de volta para o WhatsApp do lead. Simula digitação humana antes de enviar.'},
+    {id:'db',   label:'Supabase',   sub:'dados',         cx:260, cy:270, w:110, h:44, col:'#378add', desc:'Banco de dados em tempo real. Armazena leads, histórico de conversas e configurações.'},
+    {id:'oai',  label:'OpenAI',     sub:'gpt-4o-mini',   cx:400, cy:270, w:110, h:44, col:'#9d7dff', desc:'Motor de linguagem. Processa o contexto da conversa e decide a melhor resposta conforme o prompt.'},
+    {id:'sch',  label:'Scheduler',  sub:'follow-ups',    cx:555, cy:270, w:110, h:44, col:'#ffa502', desc:'Roda a cada 15 min entre 7h-21h. Envia follow-ups automáticos em 1h, 24h, 48h e 72h.'},
   ];
   const nm = {}; N.forEach(n => nm[n.id] = n);
 
@@ -1183,7 +1188,6 @@ function initGraph() {
 
   // Registra função que o poll usa para disparar partículas reais
   _dispararParticula = function() {
-    // Dispara uma partícula aleatória numa aresta aleatória
     const aresta = E[Math.floor(Math.random() * E.length)];
     aresta.pts.push({p:.02, s:.00022 + Math.random()*.0001});
     aresta.f.pulse = Math.min(1, (aresta.f.pulse||0) + .5);
@@ -1192,6 +1196,39 @@ function initGraph() {
       aresta.t.pulse = Math.min(1, (aresta.t.pulse||0) + .4);
     }
   };
+
+  // Tooltip on hover
+  const tt = document.getElementById('node-tooltip');
+  const gvEl = document.getElementById('graphView');
+  cv.addEventListener('mousemove', (e) => {
+    const rect = cv.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (cw / rect.width);
+    const my = (e.clientY - rect.top) * (360 / rect.height);
+    let hit = null;
+    for (const n of N) {
+      if (mx >= n.cx-n.w/2 && mx <= n.cx+n.w/2 &&
+          my >= n.cy-n.h/2 && my <= n.cy+n.h/2) { hit = n; break; }
+    }
+    if (hit && hit.desc) {
+      document.getElementById('tt-title').textContent = hit.label;
+      document.getElementById('tt-sub').textContent = hit.sub;
+      document.getElementById('tt-desc').textContent = hit.desc;
+      const px = e.clientX - gvEl.getBoundingClientRect().left;
+      const py = e.clientY - gvEl.getBoundingClientRect().top;
+      const tl = px > rect.width * 0.6 ? (px - 200) : (px + 16);
+      tt.style.left = tl + 'px';
+      tt.style.top = (py - 20) + 'px';
+      tt.style.display = 'block';
+      hit._hover = true;
+    } else {
+      tt.style.display = 'none';
+      N.forEach(n => n._hover = false);
+    }
+  });
+  cv.addEventListener('mouseleave', () => {
+    tt.style.display = 'none';
+    N.forEach(n => n._hover = false);
+  });
 }
 
 // ─────────────────────────────────────────────
