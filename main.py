@@ -13,9 +13,9 @@ import asyncio
 import hashlib
 import logging
 from datetime import datetime, timezone, timedelta
-from typing import Dict, Optional
+from typing import Dict, Optional, Set
 
-from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Request, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -65,6 +65,28 @@ _buffer_lock = asyncio.Lock()
 # Deduplicação local
 _dedup_local: Dict[str, datetime] = {}
 DEDUP_TTL = 30  # segundos
+
+# ============================================================================
+# WEBSOCKET — conexões ativas por empresa
+# ============================================================================
+# empresa_id -> set de WebSocket connections
+_ws_connections: Dict[str, Set[WebSocket]] = {}
+
+
+async def ws_broadcast(empresa_id: str, evento: dict):
+    """Envia evento para todos os painéis conectados nessa empresa."""
+    conns = _ws_connections.get(empresa_id, set())
+    if not conns:
+        return
+    msg = json.dumps(evento)
+    mortos = set()
+    for ws in conns:
+        try:
+            await ws.send_text(msg)
+        except Exception:
+            mortos.add(ws)
+    for ws in mortos:
+        conns.discard(ws)
 
 
 def _carregar_empresa(row: dict) -> EmpresaConfig:
@@ -317,6 +339,14 @@ async def _processar_e_responder(empresa_id: str, telefone: str, mensagem: str):
         )
         if resultado.get("deve_enviar") and resultado.get("resposta"):
             await _enviar_zapi(empresa_id, telefone, resultado["resposta"])
+
+        # Notifica painel em tempo real via WebSocket
+        await ws_broadcast(empresa_id, {
+            "tipo": "mensagem_processada",
+            "telefone": telefone,
+            "status": resultado.get("status", "CONTINUAR"),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
     except Exception as e:
         log.error(f"[{empresa_id}] ❌ processar_e_responder: {e}")
 
@@ -709,6 +739,27 @@ async def stats_empresa(empresa_id: str):
 # ============================================================================
 # PAINEL
 # ============================================================================
+
+@app.websocket("/ws/{empresa_id}")
+async def websocket_empresa(websocket: WebSocket, empresa_id: str):
+    """WebSocket para o painel receber eventos em tempo real."""
+    await websocket.accept()
+    if empresa_id not in _ws_connections:
+        _ws_connections[empresa_id] = set()
+    _ws_connections[empresa_id].add(websocket)
+    log.info(f"[{empresa_id}] 🔌 Painel conectado via WebSocket")
+    try:
+        while True:
+            # Mantém a conexão viva aguardando ping do cliente
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text("pong")
+    except WebSocketDisconnect:
+        _ws_connections.get(empresa_id, set()).discard(websocket)
+        log.info(f"[{empresa_id}] 🔌 Painel desconectado")
+    except Exception:
+        _ws_connections.get(empresa_id, set()).discard(websocket)
+
 
 @app.get("/painel")
 async def painel():
