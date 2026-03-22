@@ -138,16 +138,23 @@ async def health():
 
 @app.get("/empresas")
 async def listar_empresas():
-    """Lista empresas ativas (para o painel)."""
-    return [
-        {
-            "empresa_id": cfg.empresa_id,
-            "nome": cfg.nome,
-            "ativo": cfg.ativo,
-            "modelo_ia": cfg.modelo_ia,
-        }
-        for cfg in _empresas.values()
-    ]
+    """Lista todas as empresas (ativas e inativas) para o painel."""
+    try:
+        r = _supabase.table("empresas").select(
+            "empresa_id, nome, ativo, modelo_ia, responsavel_nome, responsavel_whatsapp"
+        ).order("created_at").execute()
+        return r.data or []
+    except Exception as e:
+        log.error(f"❌ listar_empresas: {e}")
+        return [
+            {
+                "empresa_id": cfg.empresa_id,
+                "nome": cfg.nome,
+                "ativo": cfg.ativo,
+                "modelo_ia": cfg.modelo_ia,
+            }
+            for cfg in _empresas.values()
+        ]
 
 
 # ============================================================================
@@ -552,13 +559,49 @@ async def atualizar_empresa(empresa_id: str, payload: EmpresaPayload):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.delete("/empresas/{empresa_id}")
-async def desativar_empresa(empresa_id: str):
+@app.get("/empresas/{empresa_id}")
+async def buscar_empresa(empresa_id: str):
+    """Busca dados completos de uma empresa para pré-preenchimento do wizard."""
+    try:
+        r = _supabase.table("empresas").select("*").eq(
+            "empresa_id", empresa_id
+        ).limit(1).execute()
+        if r.data:
+            return JSONResponse(r.data[0])
+        raise HTTPException(status_code=404, detail="Empresa não encontrada")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/ativar/{empresa_id}")
+async def ativar_empresa(empresa_id: str):
+    """Reativa uma empresa desativada."""
     try:
         _supabase.table("empresas").update({
-            "ativo": False,
+            "ativo": True,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }).eq("empresa_id", empresa_id).execute()
+        await _carregar_todas_empresas()
+        return JSONResponse({"sucesso": True})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/empresas/{empresa_id}")
+async def deletar_empresa(empresa_id: str, permanent: bool = False):
+    """Desativa ou exclui permanentemente uma empresa."""
+    try:
+        if permanent:
+            _supabase.table("empresas").delete().eq("empresa_id", empresa_id).execute()
+            log.info(f"🗑️ Excluída permanentemente: {empresa_id}")
+        else:
+            _supabase.table("empresas").update({
+                "ativo": False,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }).eq("empresa_id", empresa_id).execute()
+            log.info(f"⏸️ Desativada: {empresa_id}")
         _empresas.pop(empresa_id, None)
         _gestores.pop(empresa_id, None)
         return JSONResponse({"sucesso": True})
