@@ -580,10 +580,35 @@ async def atualizar_empresa(empresa_id: str, payload: EmpresaPayload):
     try:
         dados = payload.dict()
         dados["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+        # Se portão foi desativado, libera automaticamente todos os leads aguardando
+        cfg_anterior = _empresas.get(empresa_id)
+        portao_estava_ativo = cfg_anterior.portao_liberacao if cfg_anterior else False
+        portao_agora = dados.get("portao_liberacao", True)
+
         _supabase.table("empresas").update(dados).eq(
             "empresa_id", empresa_id
         ).execute()
         await _carregar_todas_empresas()
+
+        if portao_estava_ativo and not portao_agora:
+            # Busca todos os leads presos em AGUARDANDO_LIBERACAO
+            r = (_supabase.table("conversas")
+                 .select("telefone")
+                 .eq("empresa_id", empresa_id)
+                 .eq("status_conversa", "AGUARDANDO_LIBERACAO")
+                 .execute())
+            aguardando = r.data or []
+            if aguardando:
+                agora = datetime.now(timezone.utc).isoformat()
+                _supabase.table("conversas").update({
+                    "status_conversa": "CONTINUAR",
+                    "updated_at": agora
+                }).eq("empresa_id", empresa_id).eq(
+                    "status_conversa", "AGUARDANDO_LIBERACAO"
+                ).execute()
+                log.info(f"[{empresa_id}] 🔓 Portão desativado — {len(aguardando)} lead(s) liberados automaticamente")
+
         return JSONResponse({"sucesso": True})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
