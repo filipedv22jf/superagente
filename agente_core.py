@@ -400,6 +400,41 @@ class AgenteIA:
 
         prompt = self.config.prompt
 
+        # ── BLOCOS DINÂMICOS — injetados conforme os toggles da empresa ──────
+
+        # Fluxo comercial desligado → instrui o agente a não qualificar
+        if not self.config.fluxo_comercial:
+            prompt += (
+                "\n\n⚙️ FLUXO COMERCIAL DESATIVADO: Não tente qualificar o contato "
+                "nem coletar dados de fase, residência ou flashcards. "
+                "Apenas responda dúvidas e encaminhe problemas técnicos."
+            )
+
+        # Suporte desligado → escala imediatamente qualquer problema técnico
+        if not self.config.fluxo_suporte:
+            prompt += (
+                "\n\n⚙️ SUPORTE TÉCNICO DESATIVADO: Se o contato relatar qualquer "
+                "problema técnico, encaminhe imediatamente para a equipe sem tentar resolver. "
+                "Não tente diagnosticar, não envie tutoriais."
+            )
+
+        # Caso sensível desligado → trata cancelamento/reembolso no fluxo normal
+        if not self.config.fluxo_caso_sensivel:
+            prompt += (
+                "\n\n⚙️ CASO SENSÍVEL DESATIVADO: Cancelamento e reembolso não têm "
+                "tratamento especial. Trate como qualquer outra dúvida e encaminhe "
+                "para a equipe normalmente via PASSAR_HUMANO."
+            )
+
+        # Portão desligado → informa o agente que não há liberação manual
+        if not self.config.portao_liberacao:
+            prompt += (
+                "\n\n⚙️ PORTÃO DE LIBERAÇÃO DESATIVADO: Todo contato novo é atendido "
+                "imediatamente. Não há necessidade de aguardar aprovação manual."
+            )
+
+        # ─────────────────────────────────────────────────────────────────────
+
         if contador_mensagens >= 3:
             prompt += (
                 f"\n\n⚠️ ATENÇÃO: Esta é a mensagem #{contador_mensagens + 1}. "
