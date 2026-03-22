@@ -140,8 +140,7 @@ body.light .section-label{color:#9898c0}
 <div class="tb">
   <div class="tb-left">
     <div class="logo-dot"></div>
-    <span class="empresa-nome" id="tb-nome">Carregando...</span>
-    <span class="empresa-id" id="tb-id"></span>
+    <span class="empresa-id" id="tb-id" style="font-size:11px;font-family:var(--mono);color:var(--text3)"></span>
   </div>
   <div class="tb-right">
     <nav class="nav">
@@ -159,11 +158,11 @@ body.light .section-label{color:#9898c0}
   <!-- Stats -->
   <div class="stats-grid" id="stats-grid">
     <div class="stat-card"><div class="stat-val" id="s-total" style="color:var(--text)">—</div><div class="stat-lbl">Total</div></div>
-    <div class="stat-card"><div class="stat-val" id="s-aguardando" style="color:var(--amber)">—</div><div class="stat-lbl">Aguardando</div></div>
+    <div class="stat-card" id="sec-stat-aguardando"><div class="stat-val" id="s-aguardando" style="color:var(--amber)">—</div><div class="stat-lbl">Aguardando</div></div>
     <div class="stat-card"><div class="stat-val" id="s-atendimento" style="color:var(--accent)">—</div><div class="stat-lbl">Em atendimento</div></div>
-    <div class="stat-card"><div class="stat-val" id="s-trial" style="color:var(--blue)">—</div><div class="stat-lbl">Em trial</div></div>
+    <div class="stat-card" id="sec-stat-trial"><div class="stat-val" id="s-trial" style="color:var(--blue)">—</div><div class="stat-lbl">Em trial</div></div>
     <div class="stat-card"><div class="stat-val" id="s-fechar" style="color:var(--red)">—</div><div class="stat-lbl">Pra fechar</div></div>
-    <div class="stat-card"><div class="stat-val" id="s-followup" style="color:#8b5cf6">—</div><div class="stat-lbl">Follow-up</div></div>
+    <div class="stat-card" id="sec-stat-followup"><div class="stat-val" id="s-followup" style="color:#8b5cf6">—</div><div class="stat-lbl">Follow-up</div></div>
   </div>
 
   <!-- Fila liberação -->
@@ -177,9 +176,9 @@ body.light .section-label{color:#9898c0}
   <div class="inner-tabs">
     <button class="inner-tab active" onclick="filtrarLeads('')">Todos</button>
     <button class="inner-tab" onclick="filtrarLeads('CONTINUAR')">Ativos</button>
-    <button class="inner-tab" onclick="filtrarLeads('AGUARDAR_FOLLOW_UP')">Follow-up</button>
+    <button class="inner-tab" id="tab-followup" onclick="filtrarLeads('AGUARDAR_FOLLOW_UP')">Follow-up</button>
     <button class="inner-tab" onclick="filtrarLeads('PASSAR_HUMANO')">Pra fechar</button>
-    <button class="inner-tab" onclick="filtrarLeads('ACESSO_LIBERADO')">Trial</button>
+    <button class="inner-tab" id="tab-trial" onclick="filtrarLeads('ACESSO_LIBERADO')">Trial</button>
     <button class="inner-tab" onclick="filtrarLeads('FINALIZADO_SUCESSO')">Finalizados</button>
   </div>
   <div class="queue-list" id="leads-list">
@@ -300,20 +299,7 @@ function initials(nome) {
   return (nome||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 }
 
-// ── STATS ─────────────────────────────────────
-async function carregarStats() {
-  try {
-    const r = await fetch(qs(`/api/cliente/${EMPRESA_ID}/stats`));
-    if (!r.ok) return;
-    const d = await r.json();
-    document.getElementById('s-total').textContent     = d.total || 0;
-    document.getElementById('s-aguardando').textContent= d.aguardando || 0;
-    document.getElementById('s-atendimento').textContent = d.em_atendimento || 0;
-    document.getElementById('s-trial').textContent     = d.em_trial || 0;
-    document.getElementById('s-fechar').textContent    = d.pra_fechar || 0;
-    document.getElementById('s-followup').textContent  = d.follow_up || 0;
-  } catch(e) {}
-}
+// stats handled in init()
 
 // ── FILA DE LIBERAÇÃO ─────────────────────────
 function renderFila(leads) {
@@ -443,24 +429,50 @@ function iniciarPoll() {
 }
 
 // ── INIT ─────────────────────────────────────
+let _toggles = {};
+
 async function init() {
-  if (!EMPRESA_ID) {
-    document.getElementById('tb-nome').textContent = 'Empresa não encontrada';
-    return;
-  }
-  // Busca nome da empresa
+  if (!EMPRESA_ID) return;
+  document.getElementById('tb-id').textContent = EMPRESA_ID;
+  await carregarStats();
+  iniciarPoll();
+}
+
+async function carregarStats() {
   try {
     const r = await fetch(qs(`/api/cliente/${EMPRESA_ID}/stats`));
-    if (r.status === 403) {
-      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666">Acesso negado. Token inválido.</div>';
-      return;
+    if (!r.ok) return;
+    const d = await r.json();
+    _toggles = d.toggles || {};
+
+    document.getElementById('s-total').textContent      = d.total || 0;
+    document.getElementById('s-atendimento').textContent = d.em_atendimento || 0;
+    document.getElementById('s-fechar').textContent      = d.pra_fechar || 0;
+
+    // Condicional: só mostra stats dos fluxos ativos
+    const secAguardando = document.getElementById('sec-stat-aguardando');
+    const secTrial      = document.getElementById('sec-stat-trial');
+    const secFollowup   = document.getElementById('sec-stat-followup');
+    if (secAguardando) secAguardando.style.display = _toggles.portao_liberacao ? '' : 'none';
+    if (secTrial)      secTrial.style.display      = _toggles.fluxo_comercial  ? '' : 'none';
+    if (secFollowup)   secFollowup.style.display   = _toggles.fluxo_followup   ? '' : 'none';
+
+    if (_toggles.portao_liberacao) {
+      document.getElementById('s-aguardando').textContent = d.aguardando || 0;
     }
+    if (_toggles.fluxo_comercial) {
+      document.getElementById('s-trial').textContent = d.em_trial || 0;
+    }
+    if (_toggles.fluxo_followup) {
+      document.getElementById('s-followup').textContent = d.follow_up || 0;
+    }
+
+    // Aba follow-up só aparece se fluxo ativo
+    const tabFU = document.getElementById('tab-followup');
+    const tabTrial = document.getElementById('tab-trial');
+    if (tabFU) tabFU.style.display = _toggles.fluxo_followup ? '' : 'none';
+    if (tabTrial) tabTrial.style.display = _toggles.fluxo_comercial ? '' : 'none';
   } catch(e) {}
-
-  document.getElementById('tb-nome').textContent = EMPRESA_ID.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-  document.getElementById('tb-id').textContent = EMPRESA_ID;
-
-  iniciarPoll();
 }
 
 init();
