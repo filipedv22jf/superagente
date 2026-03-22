@@ -1199,36 +1199,45 @@ function initGraph() {
 
   // Tooltip on hover
   const tt = document.getElementById('node-tooltip');
-  const gvEl = document.getElementById('graphView');
+  tt.style.position = 'fixed';
+
   cv.addEventListener('mousemove', (e) => {
     const rect = cv.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) * (cw / rect.width);
-    const my = (e.clientY - rect.top) * (360 / rect.height);
+    const scaleX = cw / rect.width;
+    const scaleY = 360 / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
+
     let hit = null;
     for (const n of N) {
-      if (mx >= n.cx-n.w/2 && mx <= n.cx+n.w/2 &&
-          my >= n.cy-n.h/2 && my <= n.cy+n.h/2) { hit = n; break; }
+      if (mx >= n.cx - n.w/2 && mx <= n.cx + n.w/2 &&
+          my >= n.cy - n.h/2 && my <= n.cy + n.h/2) { hit = n; break; }
     }
+
     if (hit && hit.desc) {
       document.getElementById('tt-title').textContent = hit.label;
       document.getElementById('tt-sub').textContent = hit.sub;
       document.getElementById('tt-desc').textContent = hit.desc;
-      const px = e.clientX - gvEl.getBoundingClientRect().left;
-      const py = e.clientY - gvEl.getBoundingClientRect().top;
-      const tl = px > rect.width * 0.6 ? (px - 200) : (px + 16);
-      tt.style.left = tl + 'px';
-      tt.style.top = (py - 20) + 'px';
       tt.style.display = 'block';
-      hit._hover = true;
+
+      // Centra o tooltip abaixo do nó no viewport
+      const nodeScreenX = rect.left + (hit.cx / cw) * rect.width;
+      const nodeScreenY = rect.top + ((hit.cy + hit.h/2) / 360) * rect.height;
+
+      const ttW = 200;
+      let left = nodeScreenX - ttW / 2;
+      // Evita sair da tela
+      left = Math.max(8, Math.min(left, window.innerWidth - ttW - 8));
+
+      tt.style.left = left + 'px';
+      tt.style.top = (nodeScreenY + 10) + 'px';
+      tt.style.width = ttW + 'px';
     } else {
       tt.style.display = 'none';
-      N.forEach(n => n._hover = false);
     }
   });
-  cv.addEventListener('mouseleave', () => {
-    tt.style.display = 'none';
-    N.forEach(n => n._hover = false);
-  });
+
+  cv.addEventListener('mouseleave', () => { tt.style.display = 'none'; });
 }
 
 // ─────────────────────────────────────────────
