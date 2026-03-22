@@ -474,6 +474,8 @@ function showScr(id) {
   document.querySelectorAll('.scr').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id !== 'graphView' && _raf) { cancelAnimationFrame(_raf); _raf = null; }
+  // Persiste tela — não salva graphView/wizard (dependem de contexto)
+  if (id === 'home' || id === 'chatView') localStorage.setItem('tela_ativa', id);
 }
 
 function toast(msg, ok = true) {
@@ -1384,6 +1386,8 @@ if (localStorage.getItem('theme') === 'light') {
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
+const _telaAtiva = localStorage.getItem('tela_ativa') || 'home';
+showScr(_telaAtiva);
 carregarEmpresas();
 </script>
 </body>
