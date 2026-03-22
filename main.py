@@ -589,6 +589,81 @@ async def testar_mensagem(body: MensagemTeste):
 
 
 # ============================================================================
+# STATS — dados reais do Supabase para o node graph
+# ============================================================================
+
+@app.get("/stats/{empresa_id}")
+async def stats_empresa(empresa_id: str):
+    """Retorna estatísticas reais da empresa para o node graph."""
+    if empresa_id not in _empresas:
+        raise HTTPException(status_code=404, detail="Empresa não encontrada")
+    try:
+        # Busca todas as conversas da empresa
+        r = (
+            _supabase.table("conversas")
+            .select("status_conversa, contador_mensagens, updated_at")
+            .eq("empresa_id", empresa_id)
+            .execute()
+        )
+        conversas = r.data or []
+
+        from datetime import datetime, timezone, timedelta
+        agora = datetime.now(timezone.utc)
+        limite_24h = agora - timedelta(hours=24)
+
+        total = len(conversas)
+        ativos_24h = 0
+        em_trial = 0
+        follow_up = 0
+        pra_fechar = 0
+        mensagens_total = 0
+
+        for c in conversas:
+            status = c.get("status_conversa", "")
+            cnt = c.get("contador_mensagens", 0) or 0
+            mensagens_total += cnt
+
+            upd = c.get("updated_at", "")
+            try:
+                if upd.endswith("Z"):
+                    upd = upd[:-1] + "+00:00"
+                dt = datetime.fromisoformat(upd)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                if dt >= limite_24h:
+                    ativos_24h += 1
+            except Exception:
+                pass
+
+            if status in ("ACESSO_LIBERADO", "CADASTRO_ENVIADO"):
+                em_trial += 1
+            elif status == "AGUARDAR_FOLLOW_UP":
+                follow_up += 1
+            elif status == "PASSAR_HUMANO":
+                pra_fechar += 1
+
+        return JSONResponse({
+            "empresa_id": empresa_id,
+            "total_leads": total,
+            "ativos_24h": ativos_24h,
+            "em_trial": em_trial,
+            "follow_up": follow_up,
+            "pra_fechar": pra_fechar,
+            "mensagens_total": mensagens_total,
+            "timestamp": agora.isoformat()
+        })
+    except Exception as e:
+        log.error(f"[{empresa_id}] ❌ stats: {e}")
+        return JSONResponse({
+            "empresa_id": empresa_id,
+            "total_leads": 0, "ativos_24h": 0,
+            "em_trial": 0, "follow_up": 0,
+            "pra_fechar": 0, "mensagens_total": 0,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+
+
+# ============================================================================
 # PAINEL
 # ============================================================================
 
