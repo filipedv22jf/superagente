@@ -25,8 +25,17 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.4;box-shadow:0 0 3px var(--green)}}
 .logo em{color:var(--accent);font-style:normal}
 .tb-right{display:flex;align-items:center;gap:8px}
-.pill{font-size:10px;font-family:var(--mono);padding:3px 10px;border-radius:4px;border:1px solid var(--border2);color:var(--text2);letter-spacing:.3px}
-.pill-green{background:var(--green-dim);color:var(--green);border-color:rgba(0,208,132,.2)}
+.pill{font-size:11px;font-family:var(--mono);padding:5px 14px;border-radius:6px;border:1px solid var(--border2);color:var(--text2);letter-spacing:.3px;font-weight:500}
+.pill-green{
+  background:linear-gradient(180deg,#1a9e62 0%,#0d6e42 100%);
+  color:#afffda;
+  border:1px solid #00d084;
+  box-shadow:0 2px 0 #0a4a2c, 0 0 12px rgba(0,208,132,.25), inset 0 1px 0 rgba(255,255,255,.12);
+  text-shadow:0 1px 2px rgba(0,0,0,.4);
+  transform:translateY(0);
+  transition:all .1s;
+  cursor:default;
+}
 
 /* ── BUTTONS ── */
 .btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all .15s;font-family:inherit;letter-spacing:.2px}
@@ -49,17 +58,18 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;margin-bottom:20px}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
 .card:hover{border-color:var(--border2);box-shadow:0 8px 40px rgba(0,0,0,.5);transform:translateY(-2px)}
-.card-header{height:54px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;position:relative}
+.card-header{height:48px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;position:relative}
 .card-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:rgba(0,0,0,.2)}
-.card-body{padding:16px 16px 12px;display:flex;flex-direction:column;align-items:center;text-align:center}
-.card-avatar{width:80px;height:80px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;image-rendering:pixelated}
-.card-avatar svg{width:80px;height:80px;image-rendering:pixelated}
+.card-body{padding:8px 16px 10px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.card-working{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:6px;display:flex;align-items:center;gap:4px;justify-content:center;height:16px}
+.card-avatar{width:80px;height:100px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;image-rendering:pixelated}
+.card-avatar svg{width:80px;height:100px;image-rendering:pixelated}
 .card-status{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:8px;display:flex;align-items:center;gap:5px;justify-content:center}
 .card-status-dot{width:7px;height:7px;border-radius:50%;animation:pulse 2s infinite}
 .cname{font-size:15px;font-weight:600;margin-bottom:3px;color:var(--text)}
-.csub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:12px}
+.csub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:8px}
 .cbtns{display:flex;gap:6px;width:100%;padding:0 4px 4px}
-.cbtns .btn{flex:1;text-align:center;font-size:11px}
+.cbtns .btn{flex:1;text-align:center;font-size:10px;letter-spacing:.8px;text-transform:uppercase;font-weight:600}
 .new-card{border:1px dashed var(--border2);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:240px;cursor:pointer;border-radius:14px;transition:all .2s}
 .new-card:hover{border-color:var(--accent);background:var(--accent-glow)}
 .new-card-icon{width:44px;height:44px;border-radius:10px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text3);transition:all .2s}
@@ -146,7 +156,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 <!-- ── TOPBAR ── -->
 <div class="tb">
-  <div class="logo"><span class="logo-dot"></span><span style="font-family:var(--mono);font-size:13px;color:var(--text2);letter-spacing:1px">super agentes</span></div>
+  <div class="logo"><span class="logo-dot"></span></div>
   <div class="tb-right">
     <span class="pill pill-green" id="pill-count">carregando...</span>
     <button class="btn btn-accent" onclick="showScr('home')">Painel</button>
@@ -195,12 +205,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
         <div class="wiz-title">Dados do cliente</div>
         <div class="wiz-sub">Informações básicas da empresa que vai usar o agente.</div>
         <div class="fgrid2">
-          <div><label class="flabel">ID da empresa</label><input class="finput" id="f-empresa_id" placeholder="ex: mindmed"/></div>
-          <div><label class="flabel">Nome da empresa</label><input class="finput" id="f-nome" placeholder="ex: MindMed"/></div>
+          <div><label class="flabel">ID da empresa</label><input class="finput" id="f-empresa_id" placeholder="ex: clinica-x"/></div>
+          <div><label class="flabel">Nome da empresa</label><input class="finput" id="f-nome" placeholder="ex: Clínica X"/></div>
         </div>
         <div class="fgrid2">
-          <div><label class="flabel">Responsável (nome)</label><input class="finput" id="f-responsavel_nome" placeholder="ex: Davi"/></div>
-          <div><label class="flabel">WhatsApp do responsável</label><input class="finput" id="f-responsavel_whatsapp" placeholder="5531999999999"/></div>
+          <div><label class="flabel">Responsável (nome)</label><input class="finput" id="f-responsavel_nome" placeholder="ex: Carlos"/></div>
+          <div><label class="flabel">WhatsApp do responsável</label><input class="finput" id="f-responsavel_whatsapp" placeholder="5511999999999"/></div>
         </div>
         <div class="wiz-footer">
           <button class="btn" style="visibility:hidden">Voltar</button>
@@ -451,8 +461,19 @@ async function carregarEmpresas() {
     {bg:'#5c1a3d', text:'#ff99cc', label:'MISSION HUB'},
   ];
 
-  // Bonecos pixel art SVG — 8 variações de cor
-  function pixelChar(seed) {
+  // Detecta se o nome é feminino
+  function ehFeminino(nome) {
+    const n = (nome || '').toLowerCase();
+    const femininos = ['a','ia','ina','ana','ela','ara','ira','osa','esa','isa','ura','ica','nda'];
+    const primeiraPalavra = n.split(' ')[0];
+    return femininos.some(suf => primeiraPalavra.endsWith(suf)) ||
+      ['beatriz','sofia','ana','maria','julia','laura','carla','paula','bruna','amanda','jessica',
+       'fernanda','patricia','claudia','lucia','camila','gabriela','isabela','leticia','larissa',
+       'mariana','natalia','renata','sabrina','tatiana','vanessa'].some(fn => primeiraPalavra.includes(fn));
+  }
+
+  // Boneco pixel art — masculino
+  function pixelMasc(seed) {
     const cores = [
       {body:'#cc4444',skin:'#f5c5a3',hair:'#333'},
       {body:'#4444cc',skin:'#f5c5a3',hair:'#222'},
@@ -464,38 +485,79 @@ async function carregarEmpresas() {
       {body:'#888844',skin:'#f5d5a3',hair:'#111'},
     ];
     const c = cores[seed % cores.length];
-    // Pixel art 16x16 escalado para SVG
     return `<svg viewBox="0 0 16 20" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated;width:80px;height:100px">
-      <!-- cabeca -->
       <rect x="5" y="0" width="6" height="1" fill="${c.hair}"/>
       <rect x="4" y="1" width="8" height="1" fill="${c.hair}"/>
       <rect x="4" y="2" width="8" height="4" fill="${c.skin}"/>
-      <!-- olhos -->
       <rect x="5" y="3" width="2" height="2" fill="#222"/>
       <rect x="9" y="3" width="2" height="2" fill="#222"/>
       <rect x="5" y="3" width="1" height="1" fill="#fff"/>
       <rect x="9" y="3" width="1" height="1" fill="#fff"/>
-      <!-- boca -->
       <rect x="6" y="5" width="4" height="1" fill="#cc8866"/>
-      <!-- pescoco -->
       <rect x="6" y="6" width="4" height="1" fill="${c.skin}"/>
-      <!-- corpo -->
       <rect x="3" y="7" width="10" height="7" fill="${c.body}"/>
-      <!-- detalhes corpo -->
-      <rect x="4" y="8" width="3" height="2" fill="${c.body === '#cc4444' ? '#ff7777' : c.body}dd"/>
-      <!-- braccos -->
       <rect x="1" y="7" width="2" height="5" fill="${c.body}"/>
       <rect x="13" y="7" width="2" height="5" fill="${c.body}"/>
-      <!-- maos -->
       <rect x="1" y="12" width="2" height="2" fill="${c.skin}"/>
       <rect x="13" y="12" width="2" height="2" fill="${c.skin}"/>
-      <!-- pernas -->
       <rect x="4" y="14" width="3" height="5" fill="#2a2a4a"/>
       <rect x="9" y="14" width="3" height="5" fill="#2a2a4a"/>
-      <!-- sapatos -->
       <rect x="3" y="18" width="4" height="2" fill="#111"/>
       <rect x="9" y="18" width="4" height="2" fill="#111"/>
     </svg>`;
+  }
+
+  // Boneco pixel art — feminino (cabelo longo, saia)
+  function pixelFem(seed) {
+    const cores = [
+      {body:'#cc4488',skin:'#f5c5a3',hair:'#8b4513'},
+      {body:'#8844cc',skin:'#f5c5a3',hair:'#333'},
+      {body:'#44aacc',skin:'#f5d5a3',hair:'#553300'},
+      {body:'#cc6644',skin:'#f5c5a3',hair:'#222'},
+      {body:'#44cc88',skin:'#f5d5b3',hair:'#8b4513'},
+      {body:'#cc4444',skin:'#f5c5a3',hair:'#222'},
+      {body:'#4466cc',skin:'#f5c5a3',hair:'#553300'},
+      {body:'#aacc44',skin:'#f5d5a3',hair:'#111'},
+    ];
+    const c = cores[seed % cores.length];
+    return `<svg viewBox="0 0 16 20" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated;width:80px;height:100px">
+      <!-- cabelo topo -->
+      <rect x="4" y="0" width="8" height="2" fill="${c.hair}"/>
+      <rect x="3" y="1" width="10" height="3" fill="${c.hair}"/>
+      <!-- cabelo lateral longo -->
+      <rect x="3" y="2" width="2" height="6" fill="${c.hair}"/>
+      <rect x="11" y="2" width="2" height="6" fill="${c.hair}"/>
+      <!-- rosto -->
+      <rect x="4" y="2" width="8" height="4" fill="${c.skin}"/>
+      <!-- olhos com cílios -->
+      <rect x="5" y="3" width="2" height="1" fill="#111"/>
+      <rect x="9" y="3" width="2" height="1" fill="#111"/>
+      <rect x="5" y="4" width="2" height="1" fill="#333"/>
+      <rect x="9" y="4" width="2" height="1" fill="#333"/>
+      <rect x="5" y="3" width="1" height="1" fill="#fff"/>
+      <rect x="9" y="3" width="1" height="1" fill="#fff"/>
+      <!-- boca rosa -->
+      <rect x="6" y="5" width="4" height="1" fill="#dd6677"/>
+      <!-- pescoço -->
+      <rect x="6" y="6" width="4" height="1" fill="${c.skin}"/>
+      <!-- blusa -->
+      <rect x="3" y="7" width="10" height="5" fill="${c.body}"/>
+      <!-- braços -->
+      <rect x="1" y="7" width="2" height="4" fill="${c.body}"/>
+      <rect x="13" y="7" width="2" height="4" fill="${c.body}"/>
+      <rect x="1" y="11" width="2" height="2" fill="${c.skin}"/>
+      <rect x="13" y="11" width="2" height="2" fill="${c.skin}"/>
+      <!-- saia -->
+      <rect x="2" y="12" width="12" height="5" fill="${c.body}cc"/>
+      <rect x="1" y="14" width="14" height="3" fill="${c.body}99"/>
+      <!-- sapatos -->
+      <rect x="4" y="18" width="3" height="2" fill="#cc4499"/>
+      <rect x="9" y="18" width="3" height="2" fill="#cc4499"/>
+    </svg>`;
+  }
+
+  function pixelChar(seed, nome) {
+    return ehFeminino(nome) ? pixelFem(seed) : pixelMasc(seed);
   }
 
   let html = '';
@@ -508,11 +570,11 @@ async function carregarEmpresas() {
         ${p.label}
       </div>
       <div class="card-body">
-        <div style="font-size:10px;font-family:var(--mono);color:${p.text === '#ffaaaa' ? '#cc8888' : '#888'};margin-bottom:4px;display:flex;align-items:center;gap:4px">
-          <span style="width:5px;height:5px;border-radius:50%;background:${p.text};display:inline-block;opacity:.5"></span>
+        <div class="card-working">
+          <span style="width:5px;height:5px;border-radius:50%;background:${p.text};display:inline-block;opacity:.5;animation:pulse 1.5s infinite"></span>
           trabalhando...
         </div>
-        <div class="card-avatar">${pixelChar(i)}</div>
+        <div class="card-avatar">${pixelChar(i, e.nome)}</div>
         <div class="cname">${e.nome}</div>
         <div class="csub">${e.empresa_id}</div>
         <div class="card-status">
@@ -521,8 +583,8 @@ async function carregarEmpresas() {
         </div>
       </div>
       <div class="cbtns">
-        <button class="btn btn-sm btn-danger" onclick="desativarEmpresa('${e.empresa_id}')">desativar</button>
-        <button class="btn btn-sm btn-accent" onclick="abrirGraph('${e.empresa_id}','${e.nome}')">ver fluxo</button>
+        <button class="btn btn-sm btn-danger" onclick="desativarEmpresa('${e.empresa_id}')">Desativar</button>
+        <button class="btn btn-sm btn-accent" onclick="abrirGraph('${e.empresa_id}','${e.nome}')">Ver Fluxo</button>
       </div>
     </div>`;
   });
@@ -664,7 +726,43 @@ function abrirGraph(id, nome) {
     const el = document.getElementById('cnt-'+k);
     if(el) el.textContent = '0';
   });
+  // Busca stats reais antes de iniciar
+  _grafEmpresaId = id;
+  carregarStatsReais(id);
   setTimeout(initGraph, 60);
+}
+
+let _grafEmpresaId = '';
+let _statsInterval = null;
+
+async function carregarStatsReais(id) {
+  try {
+    const r = await fetch(API_URL + '/stats/' + id);
+    if (!r.ok) return;
+    const d = await r.json();
+    _cnts.l = d.total_leads || 0;
+    _cnts.tr = d.em_trial || 0;
+    _cnts.f = d.follow_up || 0;
+    _cnts.fc = d.pra_fechar || 0;
+    _cnts.t = d.mensagens_total || 0;
+    document.getElementById('cnt-t').textContent = _cnts.t;
+    document.getElementById('cnt-l').textContent = _cnts.l;
+    document.getElementById('cnt-tr').textContent = _cnts.tr;
+    document.getElementById('cnt-f').textContent = _cnts.f;
+    document.getElementById('cnt-fc').textContent = _cnts.fc;
+  } catch(e) {}
+}
+
+// Poll a cada 10s enquanto o graph estiver aberto
+function iniciarPollStats(id) {
+  if (_statsInterval) clearInterval(_statsInterval);
+  _statsInterval = setInterval(() => {
+    if (document.getElementById('graphView').classList.contains('active')) {
+      carregarStatsReais(id);
+    } else {
+      clearInterval(_statsInterval);
+    }
+  }, 10000);
 }
 
 function initGraph() {
@@ -849,6 +947,7 @@ function initGraph() {
   }
   if(_raf){cancelAnimationFrame(_raf);_raf=null;}
   _raf=requestAnimationFrame(frame);
+  iniciarPollStats(_grafEmpresaId);
 }
 
 // ─────────────────────────────────────────────
