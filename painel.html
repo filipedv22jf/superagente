@@ -756,9 +756,13 @@ async function menuExcluir(id, nome) {
   fecharMenu(id);
   if (!confirm('Excluir permanentemente "' + nome + '"? Essa ação não pode ser desfeita.')) return;
   try {
-    await fetch(API_URL + '/empresas/' + id + '?permanent=true', {method:'DELETE'});
+    const r = await fetch(API_URL + '/empresas/' + id + '?permanent=true', {method:'DELETE'});
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error(err.detail || 'Erro ' + r.status);
+    }
     toast('Agente excluído');
-    carregarEmpresas();
+    await carregarEmpresas();
   } catch(e) {
     toast('Erro ao excluir: ' + e.message, false);
   }
