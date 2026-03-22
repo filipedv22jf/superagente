@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgênteHub</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090f;--bg2:#0d0d18;--bg3:#12121e;--bg4:#16162a;
+  --border:#1a1a2e;--border2:#252540;--border3:#303055;
+  --accent:#7c5cfc;--accent2:#5c3fd4;--accent-glow:rgba(124,92,252,.12);
+  --green:#00d084;--green-dim:rgba(0,208,132,.08);
+  --amber:#ffa502;--red:#ff4757;--blue:#378add;
+  --text:#e2e2ef;--text2:#7070a0;--text3:#3a3a60;
+  --mono:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── TOPBAR ── */
+.tb{display:flex;align-items:center;justify-content:space-between;height:50px;padding:0 20px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.logo{font-family:var(--mono);font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.4;box-shadow:0 0 3px var(--green)}}
+.logo em{color:var(--accent);font-style:normal}
+.tb-right{display:flex;align-items:center;gap:8px}
+.pill{font-size:10px;font-family:var(--mono);padding:3px 10px;border-radius:4px;border:1px solid var(--border2);color:var(--text2);letter-spacing:.3px}
+.pill-green{background:var(--green-dim);color:var(--green);border-color:rgba(0,208,132,.2)}
+
+/* ── BUTTONS ── */
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all .15s;font-family:inherit;letter-spacing:.2px}
+.btn:hover{border-color:var(--accent);color:var(--text)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 16px var(--accent-glow)}
+.btn-accent:hover{background:var(--accent2);border-color:var(--accent2)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{border-color:rgba(255,71,87,.3);color:var(--red)}
+.btn-danger:hover{background:rgba(255,71,87,.08);border-color:var(--red)}
+
+/* ── SCREENS ── */
+.scr{display:none;padding:22px 20px;max-width:1100px;margin:0 auto}
+.scr.active{display:block}
+
+/* ── SECTION LABEL ── */
+.slabel{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.slabel::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── AGENT CARDS GRID ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:15px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .2s}
+.card:hover::before{opacity:1}
+.card:hover{border-color:var(--border2);box-shadow:0 6px 30px rgba(0,0,0,.4);transform:translateY(-1px)}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.av{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;font-family:var(--mono);overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.sbadge{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:4px;letter-spacing:.3px}
+.son{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,208,132,.15)}
+.soff{background:rgba(40,40,64,.2);color:var(--text3);border:1px solid var(--border)}
+.cname{font-size:13px;font-weight:500;margin-bottom:2px}
+.csub{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.cstats{display:flex;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.cst{flex:1;text-align:center}
+.csv{font-size:14px;font-weight:500;font-family:var(--mono)}
+.csl{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.cbtns{display:flex;gap:5px;margin-top:10px}
+.cbtns .btn{flex:1;text-align:center}
+.new-card{border:1px dashed var(--border2);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:142px;cursor:pointer;border-radius:10px;transition:all .2s}
+.new-card:hover{border-color:var(--accent);background:var(--accent-glow)}
+.new-card-icon{width:34px;height:34px;border-radius:8px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text3);transition:all .2s}
+.new-card:hover .new-card-icon{border-color:var(--accent);color:var(--accent)}
+.new-card-text{font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:.5px;transition:color .2s}
+.new-card:hover .new-card-text{color:var(--accent)}
+
+/* ── WIZARD ── */
+.wiz-layout{display:grid;grid-template-columns:190px 1fr;gap:14px;align-items:start}
+.wiz-side{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;position:sticky;top:70px}
+.wiz-side-title{font-size:9px;font-family:var(--mono);color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.ws-item{display:flex;align-items:center;gap:9px;padding:9px 7px;border-radius:6px;cursor:pointer;transition:background .15s;margin-bottom:3px}
+.ws-item.active{background:var(--accent-glow)}
+.ws-num{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);border:1px solid var(--border2);color:var(--text3);flex-shrink:0;transition:all .2s}
+.ws-item.active .ws-num{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ws-item.done .ws-num{background:var(--green-dim);color:var(--green);border-color:rgba(0,208,132,.25)}
+.ws-label{font-size:12px;color:var(--text3);transition:color .2s}
+.ws-item.active .ws-label{color:var(--text)}
+.ws-item.done .ws-label{color:var(--green)}
+.ws-line{width:1px;height:10px;background:var(--border);margin:0 0 3px 19px;transition:background .2s}
+.ws-line.done{background:rgba(0,208,132,.25)}
+.wiz-body{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:24px}
+.wiz-title{font-size:15px;font-weight:500;margin-bottom:4px}
+.wiz-sub{font-size:12px;color:var(--text2);margin-bottom:22px;line-height:1.6}
+.wiz-footer{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+.wiz-counter{font-size:10px;font-family:var(--mono);color:var(--text3)}
+
+/* ── FORM ── */
+.flabel{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;display:block}
+.finput{width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);font-size:12px;color:var(--text);font-family:inherit;outline:none;transition:border-color .15s}
+.finput:focus{border-color:var(--accent)}
+.finput option{background:var(--bg3)}
+.ftarea{resize:vertical;min-height:160px;line-height:1.65;font-family:var(--mono);font-size:11px}
+.frow{margin-bottom:15px}
+.fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:15px}
+.fgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:15px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;transition:border-color .15s}
+.toggle-row:hover{border-color:var(--border2)}
+.tinfo .ttitle{font-size:12px;font-weight:500}
+.tinfo .tsub{font-size:10px;color:var(--text3);margin-top:2px}
+.tog{position:relative;width:34px;height:18px;border-radius:9px;background:var(--border2);cursor:pointer;transition:background .2s;flex-shrink:0}
+.tog.on{background:var(--accent)}
+.tog::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
+.tog.on::after{transform:translateX(16px)}
+.int-card{border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px}
+.int-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.int-name{font-size:12px;font-weight:500}
+.int-req{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:var(--accent-glow);color:var(--accent);border:1px solid rgba(124,92,252,.2);letter-spacing:.3px}
+.range-wrap{position:relative}
+.range-val{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:4px}
+
+/* ── SUCCESS ── */
+.success-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:40px 20px}
+.success-ring{width:70px;height:70px;border-radius:50%;border:1px solid rgba(0,208,132,.3);background:var(--green-dim);display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:28px;color:var(--green)}
+.code-block{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:12px 16px;font-family:var(--mono);font-size:10px;color:var(--green);text-align:left;width:100%;max-width:340px;margin:16px 0 24px;line-height:1.9}
+.code-block .dim{color:var(--text3)}
+
+/* ── GRAPH VIEW ── */
+.gv-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.gv-meta{display:flex;gap:18px}
+.gm{font-size:10px;font-family:var(--mono);color:var(--text3)}
+.gm em{color:var(--text);font-style:normal}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+#gc{display:block;width:100%}
+.gv-footer{display:flex;background:var(--bg2);border-top:1px solid var(--border)}
+.gfi{flex:1;text-align:center;padding:10px 4px;border-right:1px solid var(--border)}
+.gfi:last-child{border-right:none}
+.gfv{font-size:16px;font-weight:500;font-family:var(--mono)}
+.gfl{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:12px;font-weight:500;z-index:999;transform:translateY(60px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-ok{background:#1a3a2a;border:1px solid rgba(0,208,132,.3);color:var(--green)}
+.toast-err{background:#3a1a1a;border:1px solid rgba(255,71,87,.3);color:var(--red)}
+
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);padding:40px 0;justify-content:center}
+.spin{width:16px;height:16px;border:1.5px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ── TOPBAR ── -->
+<div class="tb">
+  <div class="logo"><span class="logo-dot"></span>agente<em>hub</em></div>
+  <div class="tb-right">
+    <span class="pill pill-green" id="pill-count">carregando...</span>
+    <button class="btn" onclick="showScr('home')">Painel</button>
+    <button class="btn btn-accent" onclick="abrirWizard()">+ Novo agente</button>
+  </div>
+</div>
+
+<!-- ── HOME ── -->
+<div id="home" class="scr active">
+  <div class="slabel">agentes configurados</div>
+  <div class="grid" id="cards-grid">
+    <div class="loading"><div class="spin"></div> carregando agentes...</div>
+  </div>
+</div>
+
+<!-- ── WIZARD ── -->
+<div id="wizard" class="scr">
+  <div class="wiz-layout">
+    <div class="wiz-side">
+      <div class="wiz-side-title">Configuração</div>
+      <div class="ws-item" id="ws1" onclick="goStep(1)">
+        <div class="ws-num" id="wn1">1</div>
+        <div class="ws-label">Dados do cliente</div>
+      </div>
+      <div class="ws-line" id="wl1"></div>
+      <div class="ws-item" id="ws2" onclick="goStep(2)">
+        <div class="ws-num" id="wn2">2</div>
+        <div class="ws-label">Agente e prompt</div>
+      </div>
+      <div class="ws-line" id="wl2"></div>
+      <div class="ws-item" id="ws3" onclick="goStep(3)">
+        <div class="ws-num" id="wn3">3</div>
+        <div class="ws-label">Fluxos ativos</div>
+      </div>
+      <div class="ws-line" id="wl3"></div>
+      <div class="ws-item" id="ws4" onclick="goStep(4)">
+        <div class="ws-num" id="wn4">4</div>
+        <div class="ws-label">Integrações</div>
+      </div>
+    </div>
+
+    <div>
+      <!-- PASSO 1 -->
+      <div id="step1" class="wiz-body">
+        <div class="wiz-title">Dados do cliente</div>
+        <div class="wiz-sub">Informações básicas da empresa que vai usar o agente.</div>
+        <div class="fgrid2">
+          <div><label class="flabel">ID da empresa</label><input class="finput" id="f-empresa_id" placeholder="ex: mindmed"/></div>
+          <div><label class="flabel">Nome da empresa</label><input class="finput" id="f-nome" placeholder="ex: MindMed"/></div>
+        </div>
+        <div class="fgrid2">
+          <div><label class="flabel">Responsável (nome)</label><input class="finput" id="f-responsavel_nome" placeholder="ex: Davi"/></div>
+          <div><label class="flabel">WhatsApp do responsável</label><input class="finput" id="f-responsavel_whatsapp" placeholder="5531999999999"/></div>
+        </div>
+        <div class="wiz-footer">
+          <button class="btn" style="visibility:hidden">Voltar</button>
+          <span class="wiz-counter">01 / 04</span>
+          <button class="btn btn-accent" onclick="goStep(2)">Continuar</button>
+        </div>
+      </div>
+
+      <!-- PASSO 2 -->
+      <div id="step2" class="wiz-body" style="display:none">
+        <div class="wiz-title">Agente e prompt</div>
+        <div class="wiz-sub">Define o modelo de IA e as instruções completas do agente.</div>
+        <div class="fgrid2">
+          <div>
+            <label class="flabel">Modelo de IA</label>
+            <select class="finput" id="f-modelo_ia">
+              <option value="gpt-4o-mini">gpt-4o-mini</option>
+              <option value="gpt-4o">gpt-4o</option>
+            </select>
+          </div>
+          <div>
+            <label class="flabel">Temperatura</label>
+            <input class="finput" id="f-temperatura" type="number" min="0" max="1" step="0.1" value="0.5"/>
+          </div>
+        </div>
+        <div class="frow">
+          <label class="flabel">Prompt completo do agente</label>
+          <textarea class="finput ftarea" id="f-prompt" placeholder="Cole o prompt completo aqui..."></textarea>
+        </div>
+        <div class="frow">
+          <label class="flabel">Buffer de mensagens rápidas (segundos)</label>
+          <input class="finput" id="f-buffer_janela_segundos" type="number" value="8" min="2" max="30"/>
+        </div>
+        <div class="wiz-footer">
+          <button class="btn" onclick="goStep(1)">Voltar</button>
+          <span class="wiz-counter">02 / 04</span>
+          <button class="btn btn-accent" onclick="goStep(3)">Continuar</button>
+        </div>
+      </div>
+
+      <!-- PASSO 3 -->
+      <div id="step3" class="wiz-body" style="display:none">
+        <div class="wiz-title">Fluxos ativos</div>
+        <div class="wiz-sub">Escolha quais comportamentos o agente vai executar.</div>
+        <div class="toggle-row">
+          <div class="tinfo"><div class="ttitle">Fluxo comercial</div><div class="tsub">Qualificação de leads, link de trial, follow-up</div></div>
+          <div class="tog on" id="t-fluxo_comercial" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="tinfo"><div class="ttitle">Suporte técnico</div><div class="tsub">Resolve dúvidas antes de escalar para o responsável</div></div>
+          <div class="tog on" id="t-fluxo_suporte" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="tinfo"><div class="ttitle">Follow-ups automáticos</div><div class="tsub">Scheduler: 1h, 24h, 48h, 72h sem resposta</div></div>
+          <div class="tog on" id="t-fluxo_followup" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="tinfo"><div class="ttitle">Caso sensível</div><div class="tsub">Cancelamento, reembolso e histórico anterior vão ao responsável</div></div>
+          <div class="tog on" id="t-fluxo_caso_sensivel" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="tinfo"><div class="ttitle">Portão de liberação</div><div class="tsub">Você aprova cada novo contato antes do agente responder</div></div>
+          <div class="tog on" id="t-portao_liberacao" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="wiz-footer">
+          <button class="btn" onclick="goStep(2)">Voltar</button>
+          <span class="wiz-counter">03 / 04</span>
+          <button class="btn btn-accent" onclick="goStep(4)">Continuar</button>
+        </div>
+      </div>
+
+      <!-- PASSO 4 -->
+      <div id="step4" class="wiz-body" style="display:none">
+        <div class="wiz-title">Integrações</div>
+        <div class="wiz-sub">Credenciais dos serviços que o agente vai usar.</div>
+        <div class="int-card">
+          <div class="int-top"><span class="int-name">Z-API (WhatsApp)</span><span class="int-req">OBRIGATÓRIO</span></div>
+          <div class="fgrid3">
+            <div><label class="flabel">Instance ID</label><input class="finput" id="f-zapi_instance_id" placeholder="3EF9..."/></div>
+            <div><label class="flabel">Token</label><input class="finput" id="f-zapi_token" type="password" placeholder="142E..."/></div>
+            <div><label class="flabel">Client Token</label><input class="finput" id="f-zapi_client_token" type="password" placeholder="client token"/></div>
+          </div>
+        </div>
+        <div class="int-card">
+          <div class="int-top"><span class="int-name">OpenAI</span><span class="int-req">OBRIGATÓRIO</span></div>
+          <div class="frow" style="margin-bottom:0">
+            <label class="flabel">API Key</label>
+            <input class="finput" id="f-openai_api_key" type="password" placeholder="sk-proj-..."/>
+          </div>
+        </div>
+        <div class="int-card">
+          <div class="int-top"><span class="int-name">Webhook externo</span><span style="font-size:9px;color:var(--text3);font-family:var(--mono)">OPCIONAL</span></div>
+          <div class="frow" style="margin-bottom:0">
+            <label class="flabel">URL de notificação</label>
+            <input class="finput" id="f-webhook_notificacao_url" placeholder="https://hooks.exemplo.com/..."/>
+          </div>
+        </div>
+        <div class="wiz-footer">
+          <button class="btn" onclick="goStep(3)">Voltar</button>
+          <span class="wiz-counter">04 / 04</span>
+          <button class="btn btn-accent" id="btn-criar" onclick="criarAgente()">Criar agente</button>
+        </div>
+      </div>
+
+      <!-- SUCESSO -->
+      <div id="step5" class="wiz-body" style="display:none">
+        <div class="success-wrap">
+          <div class="success-ring">✓</div>
+          <div style="font-size:18px;font-weight:500;margin-bottom:8px">Agente implantado</div>
+          <div style="font-size:12px;color:var(--text2);max-width:320px;line-height:1.7">Webhook configurado, banco de dados inicializado e scheduler ativo.</div>
+          <div class="code-block" id="success-code"></div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-accent" onclick="showScr('home');carregarEmpresas()">Ver painel</button>
+            <button class="btn" onclick="abrirWizard()">Criar outro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── GRAPH VIEW ── -->
+<div id="graphView" class="scr" style="padding:0">
+  <div class="gv-bar">
+    <div class="gv-meta">
+      <div class="gm">empresa: <em id="gv-empresa"></em></div>
+      <div class="gm">agente: <em id="gv-agente"></em></div>
+      <div class="gm">processadas: <em id="cnt-t">0</em></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="live-dot"></div>
+      <span style="font-size:10px;font-family:var(--mono);color:var(--green)">ao vivo</span>
+      <button class="btn btn-sm" style="margin-left:10px" onclick="showScr('home')">← voltar</button>
+    </div>
+  </div>
+  <canvas id="gc" height="360"></canvas>
+  <div class="gv-footer">
+    <div class="gfi"><div class="gfv" id="cnt-l" style="color:var(--green)">0</div><div class="gfl">novos leads</div></div>
+    <div class="gfi"><div class="gfv" id="cnt-tr" style="color:var(--accent)">0</div><div class="gfl">em trial</div></div>
+    <div class="gfi"><div class="gfv" id="cnt-f" style="color:var(--amber)">0</div><div class="gfl">follow-up</div></div>
+    <div class="gfi"><div class="gfv" id="cnt-fc" style="color:var(--green)">0</div><div class="gfl">pra fechar</div></div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG — troque para a URL do Railway em prod
+// ─────────────────────────────────────────────
+const API_URL = '';  // '' = mesmo servidor; 'https://seu-app.railway.app' em prod
+
+// ─────────────────────────────────────────────
+// NAVEGAÇÃO
+// ─────────────────────────────────────────────
+let _raf = null;
+
+function showScr(id) {
+  document.querySelectorAll('.scr').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id !== 'graphView' && _raf) { cancelAnimationFrame(_raf); _raf = null; }
+}
+
+function toast(msg, ok = true) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (ok ? 'toast-ok' : 'toast-err');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─────────────────────────────────────────────
+// CARREGAR EMPRESAS
+// ─────────────────────────────────────────────
+async function carregarEmpresas() {
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = '<div class="loading"><div class="spin"></div> carregando...</div>';
+
+  let empresas = [];
+  try {
+    const r = await fetch(API_URL + '/empresas');
+    if (r.ok) empresas = await r.json();
+  } catch(e) {
+    // Modo demo se API não disponível
+    empresas = [
+      {empresa_id:'mindmed', nome:'MindMed', ativo:true, modelo_ia:'gpt-4o-mini'},
+      {empresa_id:'clinica_x', nome:'Clínica X', ativo:true, modelo_ia:'gpt-4o-mini'},
+    ];
+  }
+
+  const ativos = empresas.filter(e => e.ativo).length;
+  document.getElementById('pill-count').textContent = ativos + ' ativo' + (ativos !== 1 ? 's' : '');
+
+  let html = '';
+  const cores = ['rgba(124,92,252,.15)', 'rgba(0,208,132,.1)', 'rgba(255,165,2,.1)', 'rgba(55,138,221,.1)', 'rgba(255,71,87,.1)'];
+  const textCores = ['#9d7dff', '#00d084', '#ffa502', '#378add', '#ff6b7a'];
+
+  empresas.forEach((e, i) => {
+    const cor = cores[i % cores.length];
+    const tc = textCores[i % textCores.length];
+    const initials = e.nome.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+    html += `
+    <div class="card">
+      <div class="card-top">
+        <div class="av" style="background:${cor};color:${tc}">${initials}</div>
+        <span class="sbadge ${e.ativo ? 'son' : 'soff'}">${e.ativo ? 'ATIVO' : 'PAUSADO'}</span>
+      </div>
+      <div class="cname">${e.nome}</div>
+      <div class="csub">${e.empresa_id} · ${e.modelo_ia || 'gpt-4o-mini'}</div>
+      <div class="cstats">
+        <div class="cst"><div class="csv">—</div><div class="csl">leads</div></div>
+        <div class="cst"><div class="csv">—</div><div class="csl">trial</div></div>
+        <div class="cst"><div class="csv">—</div><div class="csl">fechar</div></div>
+      </div>
+      <div class="cbtns">
+        <button class="btn btn-sm btn-danger" onclick="desativarEmpresa('${e.empresa_id}')">desativar</button>
+        <button class="btn btn-sm btn-accent" onclick="abrirGraph('${e.empresa_id}','${e.nome}')">ver fluxo</button>
+      </div>
+    </div>`;
+  });
+
+  html += `
+  <div class="new-card" onclick="abrirWizard()">
+    <div class="new-card-icon">+</div>
+    <div class="new-card-text">novo agente</div>
+  </div>`;
+
+  grid.innerHTML = html;
+}
+
+async function desativarEmpresa(id) {
+  if (!confirm('Desativar ' + id + '?')) return;
+  try {
+    await fetch(API_URL + '/empresas/' + id, {method:'DELETE'});
+    toast('Agente desativado');
+    carregarEmpresas();
+  } catch(e) {
+    toast('Erro ao desativar', false);
+  }
+}
+
+// ─────────────────────────────────────────────
+// WIZARD
+// ─────────────────────────────────────────────
+let _curStep = 1;
+
+function abrirWizard() {
+  showScr('wizard');
+  goStep(1);
+  // Limpa campos
+  ['empresa_id','nome','responsavel_nome','responsavel_whatsapp',
+   'modelo_ia','temperatura','prompt','buffer_janela_segundos',
+   'zapi_instance_id','zapi_token','zapi_client_token',
+   'openai_api_key','webhook_notificacao_url'].forEach(f => {
+    const el = document.getElementById('f-' + f);
+    if (el) el.value = el.tagName === 'SELECT' ? el.options[0].value : '';
+  });
+  document.getElementById('f-temperatura').value = '0.5';
+  document.getElementById('f-buffer_janela_segundos').value = '8';
+  ['fluxo_comercial','fluxo_suporte','fluxo_followup','fluxo_caso_sensivel','portao_liberacao'].forEach(f => {
+    document.getElementById('t-'+f).classList.add('on');
+  });
+}
+
+function goStep(n) {
+  _curStep = n;
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('step' + i);
+    if (el) el.style.display = i === n ? 'block' : 'none';
+  }
+  for (let i = 1; i <= 4; i++) {
+    const ws = document.getElementById('ws' + i);
+    const wn = document.getElementById('wn' + i);
+    const wl = document.getElementById('wl' + i);
+    if (!ws) continue;
+    ws.className = 'ws-item' + (i === n ? ' active' : i < n ? ' done' : '');
+    wn.textContent = i < n ? '✓' : String(i);
+    if (wl) wl.className = 'ws-line' + (i < n ? ' done' : '');
+  }
+}
+
+function getToggle(id) {
+  return document.getElementById('t-' + id).classList.contains('on');
+}
+
+async function criarAgente() {
+  const btn = document.getElementById('btn-criar');
+  btn.textContent = 'Criando...';
+  btn.disabled = true;
+
+  const payload = {
+    empresa_id: document.getElementById('f-empresa_id').value.trim().toLowerCase().replace(/\s+/g,'-'),
+    nome: document.getElementById('f-nome').value.trim(),
+    responsavel_nome: document.getElementById('f-responsavel_nome').value.trim(),
+    responsavel_whatsapp: document.getElementById('f-responsavel_whatsapp').value.trim(),
+    modelo_ia: document.getElementById('f-modelo_ia').value,
+    temperatura: parseFloat(document.getElementById('f-temperatura').value) || 0.5,
+    prompt: document.getElementById('f-prompt').value.trim(),
+    buffer_janela_segundos: parseFloat(document.getElementById('f-buffer_janela_segundos').value) || 8,
+    zapi_instance_id: document.getElementById('f-zapi_instance_id').value.trim(),
+    zapi_token: document.getElementById('f-zapi_token').value.trim(),
+    zapi_client_token: document.getElementById('f-zapi_client_token').value.trim(),
+    openai_api_key: document.getElementById('f-openai_api_key').value.trim(),
+    webhook_notificacao_url: document.getElementById('f-webhook_notificacao_url').value.trim(),
+    fluxo_comercial: getToggle('fluxo_comercial'),
+    fluxo_suporte: getToggle('fluxo_suporte'),
+    fluxo_followup: getToggle('fluxo_followup'),
+    fluxo_caso_sensivel: getToggle('fluxo_caso_sensivel'),
+    portao_liberacao: getToggle('portao_liberacao'),
+    ativo: true
+  };
+
+  if (!payload.empresa_id || !payload.nome) {
+    toast('Preencha nome e ID da empresa', false);
+    btn.textContent = 'Criar agente'; btn.disabled = false;
+    return;
+  }
+
+  try {
+    const r = await fetch(API_URL + '/empresas', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Erro');
+
+    document.getElementById('success-code').innerHTML =
+      `<span class="dim">// agente inicializado</span>\n` +
+      `empresa_id   <span class="dim">=</span> "${payload.empresa_id}"\n` +
+      `nome         <span class="dim">=</span> "${payload.nome}"\n` +
+      `modelo       <span class="dim">=</span> "${payload.modelo_ia}"\n` +
+      `webhook      <span class="dim">=</span> "/webhook/zapi/${payload.empresa_id}"\n` +
+      `status       <span class="dim">=</span> ATIVO ✓`;
+
+    goStep(5);
+    toast('Agente criado com sucesso!');
+  } catch(e) {
+    toast('Erro: ' + e.message, false);
+  }
+
+  btn.textContent = 'Criar agente'; btn.disabled = false;
+}
+
+// ─────────────────────────────────────────────
+// NODE GRAPH ANIMADO
+// ─────────────────────────────────────────────
+let _cnts = {t:0,l:0,tr:0,f:0,fc:0};
+
+function abrirGraph(id, nome) {
+  showScr('graphView');
+  document.getElementById('gv-empresa').textContent = id;
+  document.getElementById('gv-agente').textContent = nome;
+  _cnts = {t:0,l:0,tr:0,f:0,fc:0};
+  ['t','l','tr','f','fc'].forEach(k => {
+    const el = document.getElementById('cnt-'+k);
+    if(el) el.textContent = '0';
+  });
+  setTimeout(initGraph, 60);
+}
+
+function initGraph() {
+  const cv = document.getElementById('gc');
+  const cw = cv.getBoundingClientRect().width || 680;
+  cv.width = cw; cv.height = 360;
+  const ctx = cv.getContext('2d');
+  const DW = 680, DH = 360;
+  const sx = v => v * cw / DW;
+  const sy = v => v * DH / DH;  // height stays 360
+
+  const N = [
+    {id:'wa',   label:'WhatsApp',   sub:'entrada',       cx:68,  cy:160, w:104, h:44, col:'#00d084'},
+    {id:'gate', label:'Portão',     sub:'liberação',     cx:210, cy:160, w:110, h:44, col:'#7c5cfc'},
+    {id:'agt',  label:'Agente IA',  sub:'processa',      cx:390, cy:115, w:124, h:44, col:'#7c5cfc'},
+    {id:'zapi', label:'Z-API',      sub:'resposta',      cx:560, cy:115, w:104, h:44, col:'#00d084'},
+    {id:'db',   label:'Supabase',   sub:'dados',         cx:260, cy:270, w:110, h:44, col:'#378add'},
+    {id:'oai',  label:'OpenAI',     sub:'gpt-4o-mini',   cx:400, cy:270, w:110, h:44, col:'#9d7dff'},
+    {id:'sch',  label:'Scheduler',  sub:'follow-ups',    cx:555, cy:270, w:110, h:44, col:'#ffa502'},
+  ];
+  const nm = {}; N.forEach(n => nm[n.id] = n);
+
+  function side(n, s) {
+    if(s==='r')  return {x: n.cx+n.w/2,    y: n.cy};
+    if(s==='l')  return {x: n.cx-n.w/2,    y: n.cy};
+    if(s==='b')  return {x: n.cx,          y: n.cy+n.h/2};
+    if(s==='bl') return {x: n.cx-n.w/4,   y: n.cy+n.h/2};
+    if(s==='br') return {x: n.cx+n.w/4,   y: n.cy+n.h/2};
+    return {x: n.cx, y: n.cy-n.h/2};
+  }
+
+  function mkEdge(fid, tid, fs, ts, col, rate, bidir) {
+    const f = nm[fid], t = nm[tid];
+    const p0 = side(f,fs), p3 = side(t,ts);
+    let p1, p2;
+    if(fs==='r'&&ts==='l')  { const mx=(p0.x+p3.x)/2; p1={x:mx,y:p0.y}; p2={x:mx,y:p3.y}; }
+    else if(fs==='b'&&ts==='t') { const my=(p0.y+p3.y)/2; p1={x:p0.x,y:my}; p2={x:p3.x,y:my}; }
+    else if(fs==='bl'&&ts==='t') { p1={x:p0.x-8,y:(p0.y+p3.y)/2}; p2={x:p3.x,y:(p0.y+p3.y)/2}; }
+    else if(fs==='br'&&ts==='t') { p1={x:p0.x+16,y:(p0.y+p3.y)/2}; p2={x:p3.x,y:(p0.y+p3.y)/2}; }
+    else { const mx=(p0.x+p3.x)/2; p1={x:mx,y:p0.y}; p2={x:mx,y:p3.y}; }
+    return {f,t,p0,p1,p2,p3,col,rate,bidir,pts:[],rpts:[],tm:Math.random()*rate,rtm:0};
+  }
+
+  const E = [
+    mkEdge('wa','gate','r','l','#00d084',1600,false),
+    mkEdge('gate','agt','r','l','#7c5cfc',2000,false),
+    mkEdge('agt','zapi','r','l','#00d084',2200,false),
+    mkEdge('agt','db','bl','t','#378add',1400,true),
+    mkEdge('agt','oai','b','t','#9d7dff',1100,true),
+    mkEdge('agt','sch','br','t','#ffa502',3800,false),
+  ];
+
+  function bz(t,p0,p1,p2,p3) {
+    const m=1-t;
+    return {
+      x: m*m*m*p0.x+3*m*m*t*p1.x+3*m*t*t*p2.x+t*t*t*p3.x,
+      y: m*m*m*p0.y+3*m*m*t*p1.y+3*m*t*t*p2.y+t*t*t*p3.y
+    };
+  }
+
+  function rr(ctx,x,y,w,h,r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+  }
+
+  function drawBg() {
+    ctx.fillStyle='#09090f'; ctx.fillRect(0,0,cw,360);
+    const gs = sx(28);
+    for(let x=gs/2;x<cw;x+=gs) for(let y=gs/2;y<360;y+=gs) {
+      ctx.beginPath(); ctx.arc(x,y,sx(0.65),0,Math.PI*2);
+      ctx.fillStyle='#1a1a2e'; ctx.fill();
+    }
+  }
+
+  function drawEdge(e) {
+    ctx.beginPath();
+    ctx.moveTo(sx(e.p0.x),e.p0.y);
+    ctx.bezierCurveTo(sx(e.p1.x),e.p1.y,sx(e.p2.x),e.p2.y,sx(e.p3.x),e.p3.y);
+    ctx.strokeStyle=e.col+'1a'; ctx.lineWidth=sx(1.4); ctx.stroke();
+    const a=bz(.99,e.p0,e.p1,e.p2,e.p3), b=bz(.95,e.p0,e.p1,e.p2,e.p3);
+    const ang=Math.atan2(a.y-b.y, sx(a.x)-sx(b.x));
+    ctx.save(); ctx.translate(sx(a.x),a.y); ctx.rotate(ang);
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-sx(6),-sx(3)); ctx.lineTo(-sx(6),sx(3));
+    ctx.closePath(); ctx.fillStyle=e.col+'33'; ctx.fill(); ctx.restore();
+  }
+
+  function drawPt(e, p, rev) {
+    const prog = rev ? 1-p.p : p.p;
+    const pos = bz(prog,e.p0,e.p1,e.p2,e.p3);
+    const x=sx(pos.x), y=pos.y, r=sx(3);
+    for(let i=4;i>=1;i--) {
+      const tp=Math.max(0.01,prog-(i*0.018));
+      const tpos=bz(Math.min(1,Math.max(0,tp)),e.p0,e.p1,e.p2,e.p3);
+      const al=Math.round((1-i*.22)*55).toString(16).padStart(2,'0');
+      ctx.beginPath(); ctx.arc(sx(tpos.x),tpos.y,r*(1-i*.18),0,Math.PI*2);
+      ctx.fillStyle=e.col+al; ctx.fill();
+    }
+    const g=ctx.createRadialGradient(x,y,0,x,y,r*4);
+    g.addColorStop(0,e.col+'cc'); g.addColorStop(.5,e.col+'33'); g.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(x,y,r*4,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=e.col; ctx.fill();
+  }
+
+  function drawNode(n) {
+    const x=sx(n.cx-n.w/2), y=n.cy-n.h/2, w=sx(n.w), h=n.h, rad=sx(7);
+    const pulse=n.pulse||0;
+    if(pulse>0.05) { ctx.shadowBlur=sx(14)*pulse; ctx.shadowColor=n.col; }
+    rr(ctx,x,y,w,h,rad); ctx.fillStyle='#0d0d18'; ctx.fill();
+    ctx.strokeStyle=pulse>.08?n.col:n.col+'2a'; ctx.lineWidth=sx(pulse>.08?1.4:.6); ctx.stroke();
+    ctx.shadowBlur=0;
+    rr(ctx,x,y,sx(3),h,sx(3)); ctx.fillStyle=n.col+'55'; ctx.fill();
+    ctx.fillStyle='#e2e2ef';
+    ctx.font=`500 ${sx(11)}px -apple-system,sans-serif`;
+    ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(n.label, x+sx(10), n.cy-6);
+    ctx.fillStyle=pulse>.1?n.col+'cc':'#3a3a60';
+    ctx.font=`${sx(9)}px monospace`;
+    ctx.fillText(n.sub, x+sx(10), n.cy+8);
+  }
+
+  function updCnts() {
+    ['t','l','tr','f','fc'].forEach(k => {
+      const el=document.getElementById('cnt-'+k);
+      if(el) el.textContent=_cnts[k];
+    });
+  }
+
+  let last=null;
+  function frame(ts) {
+    if(!last) last=ts;
+    const dt=Math.min(ts-last,50); last=ts;
+    E.forEach(e => {
+      e.tm+=dt;
+      if(e.tm>=e.rate) {
+        e.tm=0;
+        e.pts.push({p:.02,s:.00022+Math.random()*.0001});
+        e.f.pulse=Math.min(1,(e.f.pulse||0)+.5);
+        _cnts.t++;
+        const r=Math.random();
+        if(r<.45)_cnts.l++;
+        if(r<.18)_cnts.tr++;
+        if(r<.07)_cnts.f++;
+        if(r<.025)_cnts.fc++;
+        updCnts();
+      }
+      e.pts=e.pts.filter(p=>{
+        p.p+=p.s*dt;
+        if(p.p>=.98){e.t.pulse=Math.min(1,(e.t.pulse||0)+.6);return false;}
+        return true;
+      });
+      if(e.bidir) {
+        e.rtm+=dt;
+        if(e.rtm>=e.rate*1.4){
+          e.rtm=0;
+          e.rpts.push({p:.02,s:.0002+Math.random()*.00008});
+          e.t.pulse=Math.min(1,(e.t.pulse||0)+.4);
+        }
+        e.rpts=e.rpts.filter(p=>{
+          p.p+=p.s*dt;
+          if(p.p>=.98){e.f.pulse=Math.min(1,(e.f.pulse||0)+.5);return false;}
+          return true;
+        });
+      }
+    });
+    N.forEach(n=>{if(n.pulse>0)n.pulse=Math.max(0,n.pulse-dt*.003);});
+    drawBg();
+    E.forEach(drawEdge);
+    E.forEach(e=>{
+      e.pts.forEach(p=>drawPt(e,p,false));
+      e.rpts.forEach(p=>drawPt(e,p,true));
+    });
+    N.forEach(drawNode);
+    _raf=requestAnimationFrame(frame);
+  }
+  if(_raf){cancelAnimationFrame(_raf);_raf=null;}
+  _raf=requestAnimationFrame(frame);
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+carregarEmpresas();
+</script>
+</body>
+</html>
