@@ -149,7 +149,7 @@ TAGS_STATUS = {
     "FINALIZADO_ERRO":            "❌ ERRO",
 }
 
-STATUS_DISPARO_IMEDIATO = {"PASSAR_HUMANO", "ACESSO_LIBERADO", "CADASTRO_ENVIADO"}
+STATUS_DISPARO_IMEDIATO = {"PASSAR_HUMANO", "ACESSO_LIBERADO", "CADASTRO_ENVIADO", "FINALIZADO_SUCESSO"}
 
 MAX_TENTATIVAS_API = 3
 
@@ -314,6 +314,8 @@ class AgenteIA:
             titulo = "NOVO TRIAL — LIBERAR ACESSO AGORA"
         elif status == "CADASTRO_ENVIADO":
             titulo = "LEAD SE CADASTROU"
+        elif status == "FINALIZADO_SUCESSO":
+            titulo = "LEAD CONVERTIDO"
         else:
             titulo = "ATENÇÃO NECESSÁRIA"
 
@@ -380,6 +382,13 @@ class AgenteIA:
                     telefone=telefone, nome_aluno=nome, fase=fase,
                     status=status,
                     resumo_conversa=resumo or f"Notificação automática — {status}"
+                )
+        elif status == "FINALIZADO_SUCESSO":
+            if "notificar_time_comercial" not in ja_chamadas:
+                self._notificar_time_comercial(
+                    telefone=telefone, nome_aluno=nome, fase=fase,
+                    status="FINALIZADO_SUCESSO",
+                    resumo_conversa=resumo or "Lead convertido com sucesso."
                 )
 
     # -------------------------------------------------------------------------
@@ -460,9 +469,14 @@ class AgenteIA:
             "\nCONTINUAR | CADASTRO_ENVIADO | ACESSO_LIBERADO | AGUARDAR_FOLLOW_UP | "
             "PASSAR_HUMANO | FINALIZADO_SUCESSO | FINALIZADO_RECUSOU | "
             "FINALIZADO_NAO_QUALIFICADO | FINALIZADO_INATIVO"
+            "\n\nREGRAS DE STATUS IMPORTANTES:"
+            "\n- AGENDAMENTO CONFIRMADO = PASSAR_HUMANO obrigatório. Nunca FINALIZADO_SUCESSO direto."
+            "\n- Use PASSAR_HUMANO quando o lead confirmar agendamento, querer fechar ou precisar de ação imediata."
+            "\n- Use FINALIZADO_SUCESSO SOMENTE se o status anterior já foi PASSAR_HUMANO nesta conversa."
+            "\n- Se tiver dúvida entre PASSAR_HUMANO e FINALIZADO_SUCESSO, use PASSAR_HUMANO."
             "\n\nCAMPO resumo_notificacao: preencha quando status for "
-            "PASSAR_HUMANO, ACESSO_LIBERADO ou CADASTRO_ENVIADO. "
-            "Use prefixo emoji conforme o tipo. Null nos demais casos."
+            "PASSAR_HUMANO, ACESSO_LIBERADO, CADASTRO_ENVIADO ou FINALIZADO_SUCESSO. "
+            "Inclua nome do lead, interesse e contexto resumido. Null nos demais casos."
         )
 
         mensagens = [{"role": "system", "content": prompt_final}] + historico
