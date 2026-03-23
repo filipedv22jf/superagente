@@ -329,6 +329,10 @@ body.light .ws-item.done .ws-label{color:var(--green)}
           <div class="tinfo"><div class="ttitle">Portão de liberação</div><div class="tsub">Você aprova cada novo contato antes do agente responder</div></div>
           <div class="tog on" id="t-portao_liberacao" onclick="this.classList.toggle('on')"></div>
         </div>
+        <div class="toggle-row">
+          <div class="tinfo"><div class="ttitle">Notificação no WhatsApp</div><div class="tsub">Receba alertas de novos leads direto no seu WhatsApp</div></div>
+          <div class="tog on" id="t-notificacao_whatsapp" onclick="this.classList.toggle('on')"></div>
+        </div>
         <div class="wiz-footer">
           <button class="btn" onclick="goStep(2)">Voltar</button>
           <span class="wiz-counter">03 / 04</span>
@@ -719,7 +723,7 @@ async function menuEditarAgente(id) {
       if (el && val !== null && val !== undefined) el.value = val;
     });
     // Toggles
-    ['fluxo_comercial','fluxo_suporte','fluxo_followup','fluxo_caso_sensivel','portao_liberacao'].forEach(f => {
+    ['fluxo_comercial','fluxo_suporte','fluxo_followup','fluxo_caso_sensivel','portao_liberacao','notificacao_whatsapp'].forEach(f => {
       const el = document.getElementById('t-' + f);
       if (el) { if (d[f] !== false) el.classList.add('on'); else el.classList.remove('on'); }
     });
@@ -756,13 +760,9 @@ async function menuExcluir(id, nome) {
   fecharMenu(id);
   if (!confirm('Excluir permanentemente "' + nome + '"? Essa ação não pode ser desfeita.')) return;
   try {
-    const r = await fetch(API_URL + '/empresas/' + id + '?permanent=true', {method:'DELETE'});
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({}));
-      throw new Error(err.detail || 'Erro ' + r.status);
-    }
+    await fetch(API_URL + '/empresas/' + id + '?permanent=true', {method:'DELETE'});
     toast('Agente excluído');
-    await carregarEmpresas();
+    carregarEmpresas();
   } catch(e) {
     toast('Erro ao excluir: ' + e.message, false);
   }
@@ -790,6 +790,7 @@ async function salvarEdicao(id) {
     fluxo_suporte: getToggle('fluxo_suporte'),
     fluxo_followup: getToggle('fluxo_followup'),
     fluxo_caso_sensivel: getToggle('fluxo_caso_sensivel'),
+    notificacao_whatsapp: getToggle('notificacao_whatsapp'),
     portao_liberacao: getToggle('portao_liberacao'),
     ativo: true
   };
@@ -841,7 +842,7 @@ function abrirWizard() {
   });
   document.getElementById('f-temperatura').value = '0.5';
   document.getElementById('f-buffer_janela_segundos').value = '8';
-  ['fluxo_comercial','fluxo_suporte','fluxo_followup','fluxo_caso_sensivel','portao_liberacao'].forEach(f => {
+  ['fluxo_comercial','fluxo_suporte','fluxo_followup','fluxo_caso_sensivel','portao_liberacao','notificacao_whatsapp'].forEach(f => {
     document.getElementById('t-'+f).classList.add('on');
   });
 }
@@ -890,6 +891,7 @@ async function criarAgente() {
     fluxo_suporte: getToggle('fluxo_suporte'),
     fluxo_followup: getToggle('fluxo_followup'),
     fluxo_caso_sensivel: getToggle('fluxo_caso_sensivel'),
+    notificacao_whatsapp: getToggle('notificacao_whatsapp'),
     portao_liberacao: getToggle('portao_liberacao'),
     ativo: true
   };
