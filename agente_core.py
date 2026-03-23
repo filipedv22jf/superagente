@@ -595,24 +595,20 @@ class AgenteIA:
                 if isinstance(resposta, str):
                     resposta = resposta.replace("\\n\\n", "\n\n").replace("\\n", "\n")
 
-                # Guard: se resposta ainda vazia após todo o processo, faz chamada simples
+                # Guard: se resposta ainda vazia após todo o processo, faz chamada com histórico completo
                 if not resposta or not resposta.strip():
-                    print(f"[{self.empresa_id}] ⚠️ Resposta vazia — chamada de recuperação")
+                    print(f"[{self.empresa_id}] ⚠️ Resposta vazia — chamada de recuperação com histórico")
                     try:
-                        ultima_msg = next(
-                            (m["content"] for m in reversed(historico) if m["role"] == "user"),
-                            ""
-                        )
                         rec = self.openai.chat.completions.create(
                             model=self.config.modelo_ia,
                             messages=[
                                 {"role": "system", "content": (
                                     self.config.prompt +
-                                    "\n\nResponda à mensagem do cliente de forma natural e direta. "
-                                    "Retorne APENAS o texto da resposta, sem JSON."
-                                )},
-                                {"role": "user", "content": ultima_msg}
-                            ],
+                                    "\n\nVocê está no meio de uma conversa. NÃO se apresente novamente. "
+                                    "Continue a conversa naturalmente a partir do contexto do histórico. "
+                                    "Retorne APENAS o texto da resposta, sem JSON, sem saudação inicial."
+                                )}
+                            ] + historico,
                             max_tokens=300,
                             timeout=15
                         )
