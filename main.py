@@ -911,6 +911,17 @@ async def api_cliente_stats(empresa_id: str, token: str = ""):
 # PONTO DE ENTRADA
 # ============================================================================
 
+@app.get("/debug/openai")
+async def debug_openai():
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.get("https://api.openai.com")
+            return {"status": r.status_code, "ok": True}
+    except Exception as e:
+        return {"erro": str(e), "ok": False}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
