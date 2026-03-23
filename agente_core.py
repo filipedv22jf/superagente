@@ -527,23 +527,56 @@ class AgenteIA:
                     dados_coletados = dados_json.get("dados_coletados", {})
                     resumo = dados_json.get("resumo_notificacao") or ""
                 except json.JSONDecodeError:
-                    print(f"[{self.empresa_id}] ⚠️ JSON inválido — usando texto direto")
-                    resposta = conteudo
-                    dados_coletados = {}
-                    resumo = ""
-                    # Inferência por palavras-chave
-                    tl = conteudo.lower()
-                    if any(p in tl for p in [
-                        "vou repassar", "vou acionar", "nossa equipe", "um segundo"
-                    ]):
-                        status = "PASSAR_HUMANO"
-                        ultima = next(
-                            (m["content"] for m in reversed(historico) if m["role"] == "user"),
-                            "não identificada"
-                        )
-                        resumo = f"⚠️ INFERIDO — Aluno reportou: {ultima[:200]}"
+                    print(f"[{self.empresa_id}] ⚠️ JSON inválido — tentando corrigir")
+                    # Tenta extrair JSON de dentro do texto (às vezes o modelo envolve em markdown)
+                    import re as _re
+                    match = _re.search(r'\{.*\}', conteudo, _re.DOTALL)
+                    if match:
+                        try:
+                            dados_json = json.loads(match.group())
+                            resposta = dados_json.get("resposta", "")
+                            status = dados_json.get("status", "CONTINUAR")
+                            dados_coletados = dados_json.get("dados_coletados", {})
+                            resumo = dados_json.get("resumo_notificacao") or ""
+                            print(f"[{self.empresa_id}] ✅ JSON extraído do texto")
+                        except Exception:
+                            resposta = conteudo
+                            status = "CONTINUAR"
+                            dados_coletados = {}
+                            resumo = ""
                     else:
-                        status = "CONTINUAR"
+                        # Última tentativa: pede ao modelo pra reformatar como JSON
+                        try:
+                            fix_messages = [
+                                {"role": "system", "content": (
+                                    "Você recebeu uma resposta em texto puro. "
+                                    "Reformate-a OBRIGATORIAMENTE como JSON puro no formato:\n"
+                                    '{"resposta": "<texto da resposta>", "status": "CONTINUAR", '
+                                    '"resumo_notificacao": null, "dados_coletados": {"nome": null, "fase": null, "status_teste": null}}'
+                                )},
+                                {"role": "user", "content": f"Texto para reformatar:\n{conteudo}"}
+                            ]
+                            fix_r = self.openai.chat.completions.create(
+                                model=self.config.modelo_ia,
+                                messages=fix_messages,
+                                response_format={"type": "json_object"},
+                                max_tokens=500,
+                                timeout=15
+                            )
+                            fix_content = fix_r.choices[0].message.content.strip()
+                            dados_json = json.loads(fix_content)
+                            resposta = dados_json.get("resposta", conteudo)
+                            status = dados_json.get("status", "CONTINUAR")
+                            dados_coletados = dados_json.get("dados_coletados", {})
+                            resumo = dados_json.get("resumo_notificacao") or ""
+                            print(f"[{self.empresa_id}] ✅ JSON corrigido via retry")
+                        except Exception:
+                            # Se tudo falhar, usa o texto direto como resposta
+                            resposta = conteudo if conteudo else "Hmm, pode repetir?"
+                            status = "CONTINUAR"
+                            dados_coletados = {}
+                            resumo = ""
+                            print(f"[{self.empresa_id}] ⚠️ Usando texto direto como fallback final")
 
                 if isinstance(resposta, str):
                     resposta = resposta.replace("\\n\\n", "\n\n").replace("\\n", "\n")
