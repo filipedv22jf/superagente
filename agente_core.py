@@ -296,6 +296,8 @@ class AgenteIA:
         fase: str = None, plano_interesse: str = None, resumo: str = None
     ):
         """Envia WhatsApp para o responsável via Z-API."""
+        if not getattr(self.config, 'notificacao_whatsapp', True):
+            return
         if not self.config.responsavel_whatsapp:
             return
         if not self.config.zapi_instance_id or not self.config.zapi_token:
