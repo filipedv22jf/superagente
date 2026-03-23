@@ -579,7 +579,7 @@ class AgenteIA:
                             )
                             fix_content = fix_r.choices[0].message.content.strip()
                             dados_json = json.loads(fix_content)
-                            resposta = dados_json.get("resposta", conteudo)
+                            resposta = dados_json.get("resposta") or conteudo or ""
                             status = dados_json.get("status", "CONTINUAR")
                             dados_coletados = dados_json.get("dados_coletados", {})
                             resumo = dados_json.get("resumo_notificacao") or ""
@@ -594,6 +594,34 @@ class AgenteIA:
 
                 if isinstance(resposta, str):
                     resposta = resposta.replace("\\n\\n", "\n\n").replace("\\n", "\n")
+
+                # Guard: se resposta ainda vazia após todo o processo, faz chamada simples
+                if not resposta or not resposta.strip():
+                    print(f"[{self.empresa_id}] ⚠️ Resposta vazia — chamada de recuperação")
+                    try:
+                        ultima_msg = next(
+                            (m["content"] for m in reversed(historico) if m["role"] == "user"),
+                            ""
+                        )
+                        rec = self.openai.chat.completions.create(
+                            model=self.config.modelo_ia,
+                            messages=[
+                                {"role": "system", "content": (
+                                    self.config.prompt +
+                                    "\n\nResponda à mensagem do cliente de forma natural e direta. "
+                                    "Retorne APENAS o texto da resposta, sem JSON."
+                                )},
+                                {"role": "user", "content": ultima_msg}
+                            ],
+                            max_tokens=300,
+                            timeout=15
+                        )
+                        resposta = rec.choices[0].message.content.strip()
+                        status = "CONTINUAR"
+                        print(f"[{self.empresa_id}] ✅ Resposta recuperada | {len(resposta)} chars")
+                    except Exception as e:
+                        resposta = "pode repetir? não entendi direito"
+                        print(f"[{self.empresa_id}] ❌ Recuperação falhou: {e}")
 
                 status_validos = [
                     "CONTINUAR", "CADASTRO_ENVIADO", "ACESSO_LIBERADO",
