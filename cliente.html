@@ -326,6 +326,14 @@ function renderFila(leads) {
   }).join('');
 }
 
+async function retomarLead(telefone) {
+  try {
+    const r = await fetch(`${API_BASE}/retomar/${EMPRESA_ID}/${telefone}`, {method:'POST'});
+    if (r.ok) { toast('Atendimento retomado!'); setTimeout(carregarLeads, 800); }
+    else toast('Erro ao retomar', false);
+  } catch(e) { toast('Erro: ' + e.message, false); }
+}
+
 async function liberarLead(telefone) {
   try {
     const r = await fetch(`${API_BASE}/liberar/${EMPRESA_ID}/${telefone}`, {method:'POST'});
@@ -375,7 +383,10 @@ function renderLeads(status) {
       </div>
       ${badgeStatus(l.status_conversa)}
       <span class="lead-time" style="margin-left:8px">${tempoRelativo(l.updated_at)}</span>
-      ${l.status_conversa === 'PASSAR_HUMANO' ? `<a href="https://wa.me/${l.telefone}" target="_blank" class="btn btn-sm btn-accent" style="margin-left:8px">Abrir WA</a>` : ''}
+      ${l.status_conversa === 'PASSAR_HUMANO' ? `
+        <a href="https://wa.me/${l.telefone}" target="_blank" class="btn btn-sm btn-accent" style="margin-left:8px">Abrir WA</a>
+        <button class="btn btn-sm" style="margin-left:4px" onclick="retomarLead('${l.telefone}')">Retomar</button>
+      ` : ''}
     </div>`;
   }).join('');
 }
