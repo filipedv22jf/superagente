@@ -168,12 +168,20 @@ class AgenteIA:
     """
 
     def __init__(self, config: EmpresaConfig, supabase: Client):
-        self.config = config
+        self._config = config
         self.supabase = supabase
         self.empresa_id = config.empresa_id
-
-        # Cliente OpenAI exclusivo desta empresa
         self.openai = OpenAI(api_key=config.openai_api_key)
+
+    @property
+    def config(self) -> EmpresaConfig:
+        return self._config
+
+    @config.setter
+    def config(self, nova_config: EmpresaConfig):
+        self._config = nova_config
+        # Recria o cliente OpenAI se a key mudou
+        self.openai = OpenAI(api_key=nova_config.openai_api_key)
 
         # Tabelas com prefixo de empresa_id para isolamento
         self._t_leads = "leads"
