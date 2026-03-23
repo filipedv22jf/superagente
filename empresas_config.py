@@ -56,6 +56,7 @@ class EmpresaConfig:
     fluxo_followup: bool = True
     fluxo_caso_sensivel: bool = True
     portao_liberacao: bool = True
+    notificacao_whatsapp: bool = True
 
     @property
     def zapi_base_url(self) -> str:
@@ -95,6 +96,7 @@ class EmpresaConfig:
             fluxo_followup=d.get("fluxo_followup", True),
             fluxo_caso_sensivel=d.get("fluxo_caso_sensivel", True),
             portao_liberacao=d.get("portao_liberacao", True),
+            notificacao_whatsapp=d.get("notificacao_whatsapp", True),
         )
 
     def to_dict(self) -> dict:
@@ -127,4 +129,5 @@ class EmpresaConfig:
             "fluxo_followup": self.fluxo_followup,
             "fluxo_caso_sensivel": self.fluxo_caso_sensivel,
             "portao_liberacao": self.portao_liberacao,
+            "notificacao_whatsapp": self.notificacao_whatsapp,
         }
