@@ -60,9 +60,6 @@ FERRAMENTAS = [
                         "type": "string",
                         "enum": ["ciclo_basico", "ciclo_clinico", "internato", "formado", "residencia"]
                     },
-                    "usa_flashcards": {"type": "boolean"},
-                    "presta_residencia_esse_ano": {"type": "boolean"},
-                    "maior_dificuldade": {"type": "string"},
                     "status_teste": {
                         "type": "string",
                         "enum": ["nao_iniciou", "testando", "testou_gostou", "testou_nao_gostou"]
@@ -168,20 +165,12 @@ class AgenteIA:
     """
 
     def __init__(self, config: EmpresaConfig, supabase: Client):
-        self._config = config
+        self.config = config
         self.supabase = supabase
         self.empresa_id = config.empresa_id
+
+        # Cliente OpenAI exclusivo desta empresa
         self.openai = OpenAI(api_key=config.openai_api_key)
-
-    @property
-    def config(self) -> EmpresaConfig:
-        return self._config
-
-    @config.setter
-    def config(self, nova_config: EmpresaConfig):
-        self._config = nova_config
-        # Recria o cliente OpenAI se a key mudou
-        self.openai = OpenAI(api_key=nova_config.openai_api_key)
 
         # Tabelas com prefixo de empresa_id para isolamento
         self._t_leads = "leads"
@@ -322,7 +311,7 @@ class AgenteIA:
         elif status == "ACESSO_LIBERADO":
             titulo = "NOVO TRIAL — LIBERAR ACESSO AGORA"
         elif status == "CADASTRO_ENVIADO":
-            titulo = "ALUNO SE CADASTROU"
+            titulo = "LEAD SE CADASTROU"
         else:
             titulo = "ATENÇÃO NECESSÁRIA"
 
@@ -414,7 +403,7 @@ class AgenteIA:
         if not self.config.fluxo_comercial:
             prompt += (
                 "\n\n⚙️ FLUXO COMERCIAL DESATIVADO: Não tente qualificar o contato "
-                "nem coletar dados de fase, residência ou flashcards. "
+                "nem coletar dados adicionais do lead. "
                 "Apenas responda dúvidas e encaminhe problemas técnicos."
             )
 
@@ -446,7 +435,7 @@ class AgenteIA:
         if contador_mensagens >= 3:
             prompt += (
                 f"\n\n⚠️ ATENÇÃO: Esta é a mensagem #{contador_mensagens + 1}. "
-                "Se o aluno não demonstrou interesse claro, encerre com elegância."
+                "Se o lead não demonstrou interesse claro, encerre com elegância."
             )
 
         if tem_contexto_responsavel:
@@ -457,15 +446,14 @@ class AgenteIA:
 
         prompt_final = (
             prompt
-            + f"\n\nCONTEXTO DA SESSÃO: O telefone do aluno é {telefone}. "
+            + f"\n\nCONTEXTO DA SESSÃO: O telefone do lead é {telefone}. "
             "Use em TODAS as chamadas de ferramentas."
             "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             "\nFORMATO DE RETORNO — OBRIGATÓRIO"
             "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             "\nRetorne APENAS JSON puro. Nada antes. Nada depois."
             '\n{"resposta": "...", "status": "CONTINUAR", "resumo_notificacao": null, '
-            '"dados_coletados": {"nome": null, "fase": null, "usa_flashcards": null, '
-            '"presta_residencia_esse_ano": null, "maior_dificuldade": null, "status_teste": null}}'
+            '"dados_coletados": {"nome": null, "fase": null, "status_teste": null}}'
             "\n\nCAMPO status — valores aceitos:"
             "\nCONTINUAR | CADASTRO_ENVIADO | ACESSO_LIBERADO | AGUARDAR_FOLLOW_UP | "
             "PASSAR_HUMANO | FINALIZADO_SUCESSO | FINALIZADO_RECUSOU | "
@@ -703,12 +691,6 @@ class GestorConversas:
 
         if dados_coletados.get("nome"):           dados["nome_aluno"] = dados_coletados["nome"]
         if dados_coletados.get("fase"):           dados["fase"] = dados_coletados["fase"]
-        if dados_coletados.get("usa_flashcards") is not None:
-            dados["usa_flashcards"] = dados_coletados["usa_flashcards"]
-        if dados_coletados.get("presta_residencia_esse_ano") is not None:
-            dados["presta_residencia_esse_ano"] = dados_coletados["presta_residencia_esse_ano"]
-        if dados_coletados.get("maior_dificuldade"):
-            dados["maior_dificuldade"] = dados_coletados["maior_dificuldade"]
         if dados_coletados.get("status_teste"):
             dados["status_teste"] = dados_coletados["status_teste"]
 
