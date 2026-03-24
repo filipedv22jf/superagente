@@ -463,7 +463,8 @@ class AgenteIA:
             "\nFORMATO DE RETORNO — OBRIGATÓRIO"
             "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             "\nRetorne APENAS JSON puro. Nada antes. Nada depois."
-            '\n{"resposta": "...", "status": "CONTINUAR", "resumo_notificacao": null, '
+            '\n{"raciocinio": "analise breve e interna antes de responder (nunca aparece ao cliente)", '
+            '"resposta": "...", "status": "CONTINUAR", "resumo_notificacao": null, '
             '"dados_coletados": {"nome": null, "fase": null, "status_teste": null}}'
             "\n\nCAMPO status — valores aceitos:"
             "\nCONTINUAR | CADASTRO_ENVIADO | ACESSO_LIBERADO | AGUARDAR_FOLLOW_UP | "
@@ -492,7 +493,16 @@ class AgenteIA:
             "\nRetorne APENAS JSON puro. Nenhum texto fora do JSON."
         )
 
-        mensagens = [{"role": "system", "content": prompt_final}] + historico
+        # Envolve a última mensagem do usuário em XML tag (padrão ouro GPT-4o mini)
+        historico_xml = list(historico)
+        if historico_xml and historico_xml[-1].get("role") == "user":
+            last_msg = historico_xml[-1]["content"]
+            historico_xml[-1] = {
+                "role": "user",
+                "content": f"<user_input>{last_msg}</user_input>"
+            }
+
+        mensagens = [{"role": "system", "content": prompt_final}] + historico_xml
         ferramentas_chamadas: set = set()
 
         for iteracao in range(5):
@@ -503,15 +513,17 @@ class AgenteIA:
                 try:
                     if tentativa > 1:
                         time.sleep(1)
-                    # Temperatura dinâmica: baixa na 1ª iteração (extração de dados/JSON),
-                    # sobe levemente nas iterações seguintes (conversação mais natural)
-                    temp_dinamica = 0.1 if iteracao == 0 else min(self.config.temperatura, 0.5)
+                    # Temperatura dinâmica — baseada nos estudos técnicos:
+                    # temp=0 na 1ª iteração (extração de dados, evita inventar parâmetros de função)
+                    # sobe levemente nas seguintes para conversa mais natural
+                    temp_dinamica = 0.0 if iteracao == 0 else min(self.config.temperatura, 0.4)
                     response = self.openai.chat.completions.create(
                         model=self.config.modelo_ia,
                         messages=mensagens,
                         tools=FERRAMENTAS,
                         tool_choice="auto",
                         temperature=temp_dinamica,
+                        top_p=1,
                         max_tokens=self.config.max_tokens,
                         response_format={"type": "json_object"},
                         timeout=30
