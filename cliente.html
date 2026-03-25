@@ -16,10 +16,10 @@
   --amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;
   --text:#e8e9f4;--text2:#5c5e90;--text3:#2c2e48;
   --mono:'JetBrains Mono',monospace;--sans:'Inter',-apple-system,sans-serif;
+  --wa:#25D366;--wa-dim:rgba(37,211,102,.12);
 }
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
 
-/* LIGHT MODE */
 body.light{
   --bg:#f4f5fb;--bg2:#fff;--bg3:#eef0f9;--bg4:#e6e9f5;
   --border:#dce0f0;--border2:#c8cce8;--border3:#b4b8d8;
@@ -32,60 +32,82 @@ body.light .card,.light .stat-card,.light .lead-row{background:#fff;border-color
 body.light .badge{border-color:currentColor}
 body.light .section-label{color:#9898c0}
 
+/* GRID BG */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:40px 40px;opacity:.35;pointer-events:none;
+}
+
 /* TOPBAR */
-.tb{display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 20px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.tb{display:flex;align-items:center;justify-content:space-between;height:54px;padding:0 20px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
 .tb-left{display:flex;align-items:center;gap:10px}
-.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;flex-shrink:0}
-@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.4;box-shadow:0 0 3px var(--green)}}
-.empresa-nome{font-size:14px;font-weight:600;color:var(--text)}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green),0 0 20px rgba(0,200,120,.3);animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 10px var(--green)}50%{opacity:.4;box-shadow:0 0 4px var(--green)}}
+.empresa-nome{font-size:13px;font-weight:600;color:var(--text)}
 .empresa-id{font-size:10px;font-family:var(--mono);color:var(--text3);margin-left:4px}
 .tb-right{display:flex;align-items:center;gap:8px}
 
-/* NAV TABS */
+/* NAV */
 .nav{display:flex;gap:2px;background:var(--bg3);border-radius:8px;padding:3px;border:1px solid var(--border)}
 .nav-btn{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s;font-family:var(--sans)}
-.nav-btn.active{background:var(--accent);color:#fff}
+.nav-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(109,79,255,.3)}
 .nav-btn:hover:not(.active){color:var(--text);background:var(--border)}
 
-/* BUTTONS */
-.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all .15s;font-family:var(--sans)}
-.btn:hover{border-color:var(--accent);color:var(--text)}
-.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
-.btn-accent:hover{background:var(--accent2)}
-.btn-green{background:rgba(0,200,120,.12);color:var(--green);border-color:rgba(0,200,120,.3)}
-.btn-green:hover{background:rgba(0,200,120,.2)}
-.btn-sm{padding:4px 10px;font-size:11px}
-.btn-xs{padding:2px 8px;font-size:10px}
-.theme-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+/* THEME BTN */
+.theme-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .15s}
 .theme-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .theme-btn:hover{border-color:var(--accent);color:var(--accent)}
 
 /* SCREENS */
-.scr{display:none;padding:20px;max-width:1100px;margin:0 auto}
+.scr{display:none;padding:20px;max-width:1100px;margin:0 auto;position:relative;z-index:1}
 .scr.active{display:block}
 
 /* SECTION LABEL */
 .section-label{font-size:9px;font-family:var(--mono);color:var(--text3);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
 .section-label::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* STAT CARDS */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
-.stat-val{font-size:28px;font-weight:600;font-family:var(--mono);margin-bottom:4px}
-.stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
+/* STAT CARDS — futurista */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:24px}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;
+  text-align:center;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;
+}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.stat-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,var(--accent-glow),transparent 70%);
+  pointer-events:none;
+}
+.stat-val{font-size:30px;font-weight:600;font-family:var(--mono);margin-bottom:4px;line-height:1}
+.stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono)}
 
 /* FILA DE LIBERAÇÃO */
 .queue-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
-.lead-row{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px;transition:border-color .15s}
-.lead-row:hover{border-color:var(--border2)}
-.lead-avatar{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+
+/* LEAD ROW — redesenhado */
+.lead-row{
+  background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+  transition:border-color .15s,transform .15s,box-shadow .15s;
+}
+.lead-row:hover{border-color:var(--border2);transform:translateX(2px);box-shadow:0 4px 20px rgba(0,0,0,.2)}
+
+/* PIXEL AVATAR */
+.lead-avatar{
+  width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;overflow:hidden;image-rendering:pixelated;background:var(--bg3);border:1px solid var(--border2);
+}
+.lead-avatar svg{image-rendering:pixelated;width:36px;height:36px}
+.lead-avatar-initials{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+
 .lead-info{flex:1;min-width:0}
 .lead-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lead-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.lead-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lead-time{font-size:10px;color:var(--text3);font-family:var(--mono);flex-shrink:0}
 
 /* BADGE */
-.badge{font-size:9px;font-family:var(--mono);padding:2px 8px;border-radius:4px;letter-spacing:.3px;border:1px solid;flex-shrink:0}
+.badge{font-size:9px;font-family:var(--mono);padding:3px 8px;border-radius:20px;letter-spacing:.3px;border:1px solid;flex-shrink:0}
 .badge-wait{color:#f59e0b;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
 .badge-human{color:#ef4444;border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08)}
 .badge-trial{color:#3b82f6;border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.08)}
@@ -93,20 +115,63 @@ body.light .section-label{color:#9898c0}
 .badge-ok{color:#00c878;border-color:rgba(0,200,120,.3);background:rgba(0,200,120,.08)}
 .badge-inativo{color:var(--text3);border-color:var(--border2);background:transparent}
 
+/* BOTÃO WHATSAPP — futurista */
+.btn-wa{
+  display:inline-flex;align-items:center;gap:6px;
+  background:linear-gradient(135deg,#25D366,#128C7E);
+  color:#fff;border:none;border-radius:8px;
+  padding:6px 12px;font-size:11px;font-weight:600;
+  cursor:pointer;font-family:var(--sans);
+  box-shadow:0 2px 12px rgba(37,211,102,.25);
+  transition:all .2s;text-decoration:none;flex-shrink:0;
+}
+.btn-wa:hover{transform:scale(1.05);box-shadow:0 4px 20px rgba(37,211,102,.4)}
+.btn-wa svg{width:14px;height:14px;fill:currentColor;flex-shrink:0}
+
+/* BOTÃO RETOMAR */
+.btn-retomar{
+  display:inline-flex;align-items:center;gap:5px;
+  background:transparent;border:1px solid var(--border2);
+  color:var(--text2);border-radius:8px;padding:6px 12px;
+  font-size:11px;font-weight:500;cursor:pointer;font-family:var(--sans);
+  transition:all .2s;flex-shrink:0;
+}
+.btn-retomar:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+
+/* BOTÃO LIBERAR */
+.btn-liberar{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(0,200,120,.1);border:1px solid rgba(0,200,120,.3);
+  color:var(--green);border-radius:8px;padding:6px 12px;
+  font-size:11px;font-weight:500;cursor:pointer;font-family:var(--sans);
+  transition:all .2s;flex-shrink:0;
+}
+.btn-liberar:hover{background:rgba(0,200,120,.2);box-shadow:0 0 12px rgba(0,200,120,.15)}
+
 /* NOTIFICAÇÕES */
 .notif-list{display:flex;flex-direction:column;gap:6px}
-.notif-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
-.notif-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.notif-item{
+  background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;display:flex;align-items:flex-start;gap:12px;
+  transition:border-color .15s;
+}
+.notif-item:hover{border-color:var(--border2)}
+.notif-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .notif-body{flex:1}
 .notif-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px}
 .notif-desc{font-size:11px;color:var(--text2);line-height:1.5}
 .notif-time{font-size:10px;color:var(--text3);font-family:var(--mono);flex-shrink:0}
 .notif-new{border-color:var(--accent);background:rgba(109,79,255,.04)}
 
-/* TABS DENTRO DE TELA */
+/* INNER TABS */
 .inner-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.inner-tab{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2);transition:all .15s;font-family:var(--sans)}
-.inner-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.inner-tab{
+  padding:5px 14px;border-radius:20px;font-size:11px;font-weight:500;
+  cursor:pointer;border:1px solid var(--border2);background:transparent;
+  color:var(--text2);transition:all .15s;font-family:var(--sans);
+}
+.inner-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(109,79,255,.3)}
+.inner-tab:hover:not(.active){color:var(--text);border-color:var(--border3)}
 
 /* LOADING */
 .loading{display:flex;align-items:center;gap:8px;color:var(--text3);font-size:12px;padding:20px 0}
@@ -114,12 +179,12 @@ body.light .section-label{color:#9898c0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* EMPTY */
-.empty{text-align:center;padding:40px 20px;color:var(--text3)}
-.empty-icon{font-size:32px;margin-bottom:10px;opacity:.4}
-.empty-text{font-size:12px;font-family:var(--mono);letter-spacing:.5px}
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-icon{font-size:32px;margin-bottom:10px;opacity:.3}
+.empty-text{font-size:11px;font-family:var(--mono);letter-spacing:.5px}
 
 /* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:12px;font-weight:500;z-index:999;transform:translateY(60px);opacity:0;transition:all .3s;pointer-events:none}
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:10px;font-size:12px;font-weight:500;z-index:999;transform:translateY(60px);opacity:0;transition:all .3s;pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
 .toast-ok{background:#1a3a2a;border:1px solid rgba(0,200,120,.3);color:var(--green)}
 .toast-err{background:#3a1a1a;border:1px solid rgba(239,68,68,.3);color:var(--red)}
@@ -136,11 +201,10 @@ body.light .section-label{color:#9898c0}
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="tb">
   <div class="tb-left">
     <div class="logo-dot"></div>
-    <span class="empresa-id" id="tb-id" style="font-size:11px;font-family:var(--mono);color:var(--text3)"></span>
+    <span class="empresa-id" id="tb-id" style="font-size:12px;font-family:var(--mono);color:var(--text2)"></span>
   </div>
   <div class="tb-right">
     <nav class="nav">
@@ -155,7 +219,6 @@ body.light .section-label{color:#9898c0}
 
 <!-- ABA LEADS -->
 <div id="scr-leads" class="scr active">
-  <!-- Stats -->
   <div class="stats-grid" id="stats-grid">
     <div class="stat-card"><div class="stat-val" id="s-total" style="color:var(--text)">—</div><div class="stat-lbl">Total</div></div>
     <div class="stat-card" id="sec-stat-aguardando"><div class="stat-val" id="s-aguardando" style="color:var(--amber)">—</div><div class="stat-lbl">Aguardando</div></div>
@@ -165,13 +228,11 @@ body.light .section-label{color:#9898c0}
     <div class="stat-card" id="sec-stat-followup"><div class="stat-val" id="s-followup" style="color:#8b5cf6">—</div><div class="stat-lbl">Follow-up</div></div>
   </div>
 
-  <!-- Fila liberação -->
   <div id="sec-fila" style="display:none">
     <div class="section-label">fila de liberação</div>
     <div class="queue-list" id="fila-list"></div>
   </div>
 
-  <!-- Todos os leads -->
   <div class="section-label" style="margin-top:8px">leads</div>
   <div class="inner-tabs">
     <button class="inner-tab active" onclick="filtrarLeads('')">Todos</button>
@@ -197,302 +258,374 @@ body.light .section-label{color:#9898c0}
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG ──────────────────────────────────
 const API_BASE = '';
-const PATH = location.pathname; // /cliente/mindmed
+const PATH = location.pathname;
 const EMPRESA_ID = PATH.split('/').filter(Boolean).pop() || '';
 const TOKEN = new URLSearchParams(location.search).get('token') || '';
 
-// ── ESTADO ──────────────────────────────────
 let _todosLeads = [];
 let _filtroAtual = '';
 let _notifNovos = 0;
 let _pollInterval = null;
+let _toggles = {};
 
-// ── TEMA ────────────────────────────────────
+// ── TEMA ──────────────────────────────────────
 const ICON_MOON = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
 const ICON_SUN  = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
-function toggleTheme() {
-  const l = document.body.classList.toggle('light');
-  document.getElementById('theme-icon').innerHTML = l ? ICON_SUN : ICON_MOON;
-  localStorage.setItem('cliente_theme', l ? 'light' : 'dark');
+function toggleTheme(){
+  const l=document.body.classList.toggle('light');
+  document.getElementById('theme-icon').innerHTML=l?ICON_SUN:ICON_MOON;
+  localStorage.setItem('cliente_theme',l?'light':'dark');
 }
-if (localStorage.getItem('cliente_theme') === 'light') {
+if(localStorage.getItem('cliente_theme')==='light'){
   document.body.classList.add('light');
-  document.getElementById('theme-icon').innerHTML = ICON_SUN;
+  document.getElementById('theme-icon').innerHTML=ICON_SUN;
 }
 
-// ── TOAST ────────────────────────────────────
-function toast(msg, ok = true) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + (ok ? 'toast-ok' : 'toast-err');
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+// ── TOAST ─────────────────────────────────────
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+(ok?'toast-ok':'toast-err');
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// ── ABAS ─────────────────────────────────────
-function mudarAba(aba) {
-  document.querySelectorAll('.scr').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('scr-' + aba).classList.add('active');
+// ── ABAS ──────────────────────────────────────
+function mudarAba(aba){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('scr-'+aba).classList.add('active');
   event.target.classList.add('active');
-  if (aba === 'notificacoes') {
-    _notifNovos = 0;
-    atualizarBadgeNotif();
-    carregarNotificacoes();
-  }
+  if(aba==='notificacoes'){_notifNovos=0;atualizarBadgeNotif();carregarNotificacoes();}
+}
+function atualizarBadgeNotif(){
+  const btn=document.getElementById('nav-notif');
+  const badge=btn.querySelector('.ping-badge');
+  if(_notifNovos>0){
+    if(!badge)btn.insertAdjacentHTML('beforeend',`<span class="ping-badge">${_notifNovos}</span>`);
+    else badge.textContent=_notifNovos;
+  }else if(badge)badge.remove();
 }
 
-function atualizarBadgeNotif() {
-  const btn = document.getElementById('nav-notif');
-  const badge = btn.querySelector('.ping-badge');
-  if (_notifNovos > 0) {
-    if (!badge) btn.insertAdjacentHTML('beforeend', `<span class="ping-badge">${_notifNovos}</span>`);
-    else badge.textContent = _notifNovos;
-  } else if (badge) badge.remove();
+// ── UTILS ─────────────────────────────────────
+function qs(path){return `${API_BASE}${path}?token=${encodeURIComponent(TOKEN)}`;}
+function tempoRelativo(iso){
+  if(!iso)return'—';
+  const diff=(Date.now()-new Date(iso).getTime())/1000;
+  if(diff<60)return'agora';
+  if(diff<3600)return Math.floor(diff/60)+'min';
+  if(diff<86400)return Math.floor(diff/3600)+'h';
+  return Math.floor(diff/86400)+'d';
 }
-
-// ── UTILS ────────────────────────────────────
-function qs(path) {
-  return `${API_BASE}${path}?token=${encodeURIComponent(TOKEN)}`;
-}
-
-function tempoRelativo(iso) {
-  if (!iso) return '—';
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 60)   return 'agora';
-  if (diff < 3600) return Math.floor(diff/60) + 'min';
-  if (diff < 86400)return Math.floor(diff/3600) + 'h';
-  return Math.floor(diff/86400) + 'd';
-}
-
-function badgeStatus(status) {
-  const map = {
-    'AGUARDANDO_LIBERACAO': ['Aguardando', 'badge-wait'],
-    'CONTINUAR':            ['Ativo',      'badge-ok'],
-    'PASSAR_HUMANO':        ['Pra fechar', 'badge-human'],
-    'AGUARDAR_FOLLOW_UP':   ['Follow-up',  'badge-followup'],
-    'ACESSO_LIBERADO':      ['Trial',      'badge-trial'],
-    'CADASTRO_ENVIADO':     ['Cadastro',   'badge-trial'],
-    'FINALIZADO_SUCESSO':   ['Sucesso',    'badge-ok'],
-    'FINALIZADO_RECUSOU':   ['Recusou',    'badge-inativo'],
-    'FINALIZADO_INATIVO':   ['Inativo',    'badge-inativo'],
-    'FINALIZADO_NAO_QUALIFICADO': ['Não qualif.', 'badge-inativo'],
+function badgeStatus(status){
+  const map={
+    'AGUARDANDO_LIBERACAO':['Aguardando','badge-wait'],
+    'CONTINUAR':['Ativo','badge-ok'],
+    'PASSAR_HUMANO':['Pra fechar','badge-human'],
+    'AGUARDAR_FOLLOW_UP':['Follow-up','badge-followup'],
+    'ACESSO_LIBERADO':['Trial','badge-trial'],
+    'CADASTRO_ENVIADO':['Cadastro','badge-trial'],
+    'FINALIZADO_SUCESSO':['Sucesso','badge-ok'],
+    'FINALIZADO_RECUSOU':['Recusou','badge-inativo'],
+    'FINALIZADO_INATIVO':['Inativo','badge-inativo'],
+    'FINALIZADO_NAO_QUALIFICADO':['Não qualif.','badge-inativo'],
   };
-  const [label, cls] = map[status] || [status, 'badge-inativo'];
-  return `<span class="badge ${cls}">${label}</span>`;
+  const[label,cls]=map[status]||[status,'badge-inativo'];
+  return`<span class="badge ${cls}">${label}</span>`;
 }
 
-function avatarColors(idx) {
-  const paleta = [
-    {bg:'rgba(109,79,255,.15)',color:'#9d7dff'},
-    {bg:'rgba(0,200,120,.12)', color:'#00c878'},
-    {bg:'rgba(59,130,246,.12)',color:'#3b82f6'},
-    {bg:'rgba(245,158,11,.12)',color:'#f59e0b'},
-    {bg:'rgba(239,68,68,.12)', color:'#ef4444'},
+// ── PIXEL ART AVATARS ─────────────────────────
+function ehFeminino(nome){
+  const n=(nome||'').toLowerCase();
+  const femininos=['a','ia','ina','ana','ela','ara','ira','osa','esa','isa','ura','ica','nda'];
+  const p=n.split(' ')[0];
+  return femininos.some(s=>p.endsWith(s))||
+    ['beatriz','sofia','ana','maria','julia','laura','carla','paula','bruna','amanda','jessica',
+     'fernanda','patricia','claudia','lucia','camila','gabriela','isabela','leticia','larissa',
+     'mariana','natalia','renata','sabrina','tatiana','vanessa'].some(f=>p.includes(f));
+}
+
+function pixelMasc(seed){
+  const cores=[
+    {body:'#cc4444',skin:'#f5c5a3',hair:'#333'},
+    {body:'#4444cc',skin:'#f5c5a3',hair:'#222'},
+    {body:'#44aa44',skin:'#f5d5a3',hair:'#553300'},
+    {body:'#cc8800',skin:'#f5c5a3',hair:'#111'},
+    {body:'#aa44cc',skin:'#f5d5b3',hair:'#333'},
+    {body:'#44aacc',skin:'#f5c5a3',hair:'#222'},
+    {body:'#cc4488',skin:'#f5c5a3',hair:'#553300'},
+    {body:'#888844',skin:'#f5d5a3',hair:'#111'},
   ];
-  return paleta[idx % paleta.length];
+  const c=cores[seed%cores.length];
+  return`<svg viewBox="0 0 16 20" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated;width:36px;height:45px">
+    <rect x="5" y="0" width="6" height="1" fill="${c.hair}"/>
+    <rect x="4" y="1" width="8" height="1" fill="${c.hair}"/>
+    <rect x="4" y="2" width="8" height="4" fill="${c.skin}"/>
+    <rect x="5" y="3" width="2" height="2" fill="#222"/>
+    <rect x="9" y="3" width="2" height="2" fill="#222"/>
+    <rect x="5" y="3" width="1" height="1" fill="#fff"/>
+    <rect x="9" y="3" width="1" height="1" fill="#fff"/>
+    <rect x="6" y="5" width="4" height="1" fill="#cc8866"/>
+    <rect x="6" y="6" width="4" height="1" fill="${c.skin}"/>
+    <rect x="3" y="7" width="10" height="7" fill="${c.body}"/>
+    <rect x="1" y="7" width="2" height="5" fill="${c.body}"/>
+    <rect x="13" y="7" width="2" height="5" fill="${c.body}"/>
+    <rect x="1" y="12" width="2" height="2" fill="${c.skin}"/>
+    <rect x="13" y="12" width="2" height="2" fill="${c.skin}"/>
+    <rect x="4" y="14" width="3" height="5" fill="#2a2a4a"/>
+    <rect x="9" y="14" width="3" height="5" fill="#2a2a4a"/>
+    <rect x="3" y="18" width="4" height="2" fill="#111"/>
+    <rect x="9" y="18" width="4" height="2" fill="#111"/>
+  </svg>`;
 }
 
-function initials(nome) {
-  return (nome||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+function pixelFem(seed){
+  const cores=[
+    {body:'#cc4488',skin:'#f5c5a3',hair:'#8b4513'},
+    {body:'#8844cc',skin:'#f5c5a3',hair:'#333'},
+    {body:'#44aacc',skin:'#f5d5a3',hair:'#553300'},
+    {body:'#cc6644',skin:'#f5c5a3',hair:'#222'},
+    {body:'#44cc88',skin:'#f5d5b3',hair:'#8b4513'},
+    {body:'#cc4444',skin:'#f5c5a3',hair:'#222'},
+    {body:'#4466cc',skin:'#f5c5a3',hair:'#553300'},
+    {body:'#aacc44',skin:'#f5d5a3',hair:'#111'},
+  ];
+  const c=cores[seed%cores.length];
+  return`<svg viewBox="0 0 16 20" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated;width:36px;height:45px">
+    <rect x="4" y="0" width="8" height="2" fill="${c.hair}"/>
+    <rect x="3" y="1" width="10" height="3" fill="${c.hair}"/>
+    <rect x="3" y="2" width="2" height="6" fill="${c.hair}"/>
+    <rect x="11" y="2" width="2" height="6" fill="${c.hair}"/>
+    <rect x="4" y="2" width="8" height="4" fill="${c.skin}"/>
+    <rect x="5" y="3" width="2" height="1" fill="#111"/>
+    <rect x="9" y="3" width="2" height="1" fill="#111"/>
+    <rect x="5" y="4" width="2" height="1" fill="#333"/>
+    <rect x="9" y="4" width="2" height="1" fill="#333"/>
+    <rect x="5" y="3" width="1" height="1" fill="#fff"/>
+    <rect x="9" y="3" width="1" height="1" fill="#fff"/>
+    <rect x="6" y="5" width="4" height="1" fill="#dd6677"/>
+    <rect x="6" y="6" width="4" height="1" fill="${c.skin}"/>
+    <rect x="3" y="7" width="10" height="5" fill="${c.body}"/>
+    <rect x="1" y="7" width="2" height="4" fill="${c.body}"/>
+    <rect x="13" y="7" width="2" height="4" fill="${c.body}"/>
+    <rect x="1" y="11" width="2" height="2" fill="${c.skin}"/>
+    <rect x="13" y="11" width="2" height="2" fill="${c.skin}"/>
+    <rect x="2" y="12" width="12" height="5" fill="${c.body}cc"/>
+    <rect x="1" y="14" width="14" height="3" fill="${c.body}99"/>
+    <rect x="4" y="18" width="3" height="2" fill="#cc4499"/>
+    <rect x="9" y="18" width="3" height="2" fill="#cc4499"/>
+  </svg>`;
 }
 
-// stats handled in init()
+function pixelAvatar(seed,nome){
+  return ehFeminino(nome)?pixelFem(seed):pixelMasc(seed);
+}
+
+// ── LOGO WHATSAPP SVG ─────────────────────────
+const WA_LOGO=`<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>`;
 
 // ── FILA DE LIBERAÇÃO ─────────────────────────
-function renderFila(leads) {
-  const sec = document.getElementById('sec-fila');
-  const list = document.getElementById('fila-list');
-  // Só mostra fila se portão de liberação estiver ativo
-  if (!_toggles.portao_liberacao) { sec.style.display = 'none'; return; }
-  const fila = leads.filter(l => l.status_conversa === 'AGUARDANDO_LIBERACAO');
-  if (!fila.length) { sec.style.display = 'none'; return; }
-  sec.style.display = 'block';
-  list.innerHTML = fila.map((l, i) => {
-    const av = avatarColors(i);
-    return `
+function renderFila(leads){
+  const sec=document.getElementById('sec-fila');
+  const list=document.getElementById('fila-list');
+  if(!_toggles.portao_liberacao){sec.style.display='none';return;}
+  const fila=leads.filter(l=>l.status_conversa==='AGUARDANDO_LIBERACAO');
+  if(!fila.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  list.innerHTML=fila.map((l,i)=>{
+    const nome=l.nome_aluno||'';
+    const seed=l.telefone.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+    const avatarHtml=nome?
+      `<div class="lead-avatar">${pixelAvatar(seed,nome)}</div>`:
+      `<div class="lead-avatar-initials" style="background:rgba(245,158,11,.12);color:#f59e0b">?</div>`;
+    return`
     <div class="lead-row">
-      <div class="lead-avatar" style="background:${av.bg};color:${av.color}">${initials(l.nome_aluno)}</div>
+      ${avatarHtml}
       <div class="lead-info">
-        <div class="lead-name">${l.nome_aluno || l.telefone}</div>
-        <div class="lead-sub">${l.telefone} · ${l.primeira_mensagem ? '"' + l.primeira_mensagem.slice(0,40) + '..."' : 'sem mensagem'}</div>
+        <div class="lead-name">${nome||l.telefone}</div>
+        <div class="lead-sub">${l.telefone} · ${l.primeira_mensagem?'"'+l.primeira_mensagem.slice(0,40)+'..."':'sem mensagem'}</div>
       </div>
       <span class="badge badge-wait" style="margin-right:8px">Aguardando</span>
       <span class="lead-time">${tempoRelativo(l.updated_at)}</span>
-      <button class="btn btn-green btn-sm" style="margin-left:8px" onclick="liberarLead('${l.telefone}')">Liberar</button>
+      <button class="btn-liberar" style="margin-left:8px" onclick="liberarLead('${l.telefone}')">Liberar</button>
     </div>`;
   }).join('');
 }
 
-async function retomarLead(telefone) {
-  try {
-    const r = await fetch(`${API_BASE}/retomar/${EMPRESA_ID}/${telefone}`, {method:'POST'});
-    if (r.ok) { toast('Atendimento retomado!'); setTimeout(carregarLeads, 800); }
-    else toast('Erro ao retomar', false);
-  } catch(e) { toast('Erro: ' + e.message, false); }
+async function retomarLead(telefone){
+  try{
+    const r=await fetch(`${API_BASE}/retomar/${EMPRESA_ID}/${telefone}`,{method:'POST'});
+    if(r.ok){toast('Atendimento retomado!');setTimeout(carregarLeads,800);}
+    else toast('Erro ao retomar',false);
+  }catch(e){toast('Erro: '+e.message,false);}
 }
 
-async function liberarLead(telefone) {
-  try {
-    const r = await fetch(`${API_BASE}/liberar/${EMPRESA_ID}/${telefone}`, {method:'POST'});
-    if (r.ok) { toast('Lead liberado!'); setTimeout(carregarLeads, 800); }
-    else toast('Erro ao liberar', false);
-  } catch(e) { toast('Erro: ' + e.message, false); }
+async function liberarLead(telefone){
+  try{
+    const r=await fetch(`${API_BASE}/liberar/${EMPRESA_ID}/${telefone}`,{method:'POST'});
+    if(r.ok){toast('Lead liberado!');setTimeout(carregarLeads,800);}
+    else toast('Erro ao liberar',false);
+  }catch(e){toast('Erro: '+e.message,false);}
 }
 
 // ── LEADS ─────────────────────────────────────
-async function carregarLeads() {
-  try {
-    const r = await fetch(qs(`/api/cliente/${EMPRESA_ID}/leads`));
-    if (!r.ok) return;
-    _todosLeads = await r.json();
+async function carregarLeads(){
+  try{
+    const r=await fetch(qs(`/api/cliente/${EMPRESA_ID}/leads`));
+    if(!r.ok)return;
+    _todosLeads=await r.json();
     renderFila(_todosLeads);
     renderLeads(_filtroAtual);
     carregarStats();
-  } catch(e) {
-    document.getElementById('leads-list').innerHTML =
+  }catch(e){
+    document.getElementById('leads-list').innerHTML=
       '<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">erro ao carregar leads</div></div>';
   }
 }
 
-function filtrarLeads(status) {
-  _filtroAtual = status;
-  document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+function filtrarLeads(status){
+  _filtroAtual=status;
+  document.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));
   event.target.classList.add('active');
   renderLeads(status);
 }
 
-function renderLeads(status) {
-  const list = document.getElementById('leads-list');
-  const filtrados = status ? _todosLeads.filter(l => l.status_conversa === status) : _todosLeads;
-  if (!filtrados.length) {
-    list.innerHTML = '<div class="empty"><div class="empty-icon">☁</div><div class="empty-text">nenhum lead encontrado</div></div>';
+function renderLeads(status){
+  const list=document.getElementById('leads-list');
+  const filtrados=status?_todosLeads.filter(l=>l.status_conversa===status):_todosLeads;
+  if(!filtrados.length){
+    list.innerHTML='<div class="empty"><div class="empty-icon">☁</div><div class="empty-text">nenhum lead encontrado</div></div>';
     return;
   }
-  list.innerHTML = filtrados.map((l, i) => {
-    const av = avatarColors(i);
-    const msgsCnt = l.contador_mensagens || 0;
-    const precisaAtencao = ['PASSAR_HUMANO','CADASTRO_ENVIADO','FINALIZADO_SUCESSO'].includes(l.status_conversa);
-    const primMsg = l.primeira_mensagem ? l.primeira_mensagem.slice(0,50) + (l.primeira_mensagem.length > 50 ? '...' : '') : '';
-    return `
-    <div class="lead-row" style="${precisaAtencao ? 'border-color:var(--border2)' : ''}">
-      <div class="lead-avatar" style="background:${av.bg};color:${av.color}">${initials(l.nome_aluno)}</div>
+  list.innerHTML=filtrados.map((l,i)=>{
+    const nome=l.nome_aluno||'';
+    const msgsCnt=l.contador_mensagens||0;
+    const seed=l.telefone.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+
+    // Avatar: pixel art se tem nome, inicial colorida se não tem
+    let avatarHtml;
+    if(nome){
+      avatarHtml=`<div class="lead-avatar">${pixelAvatar(seed,nome)}</div>`;
+    }else{
+      const paleta=[
+        {bg:'rgba(109,79,255,.15)',color:'#9d7dff'},
+        {bg:'rgba(0,200,120,.12)',color:'#00c878'},
+        {bg:'rgba(59,130,246,.12)',color:'#3b82f6'},
+        {bg:'rgba(245,158,11,.12)',color:'#f59e0b'},
+        {bg:'rgba(239,68,68,.12)',color:'#ef4444'},
+      ];
+      const av=paleta[i%paleta.length];
+      avatarHtml=`<div class="lead-avatar-initials" style="background:${av.bg};color:${av.color}">?</div>`;
+    }
+
+    const primMsg=l.primeira_mensagem?l.primeira_mensagem.slice(0,40)+(l.primeira_mensagem.length>40?'...':''):'';
+    const fase=l.fase?` · ${l.fase}`:'';
+
+    let acoes='';
+    if(l.status_conversa==='PASSAR_HUMANO'){
+      acoes=`
+        <a href="https://wa.me/${l.telefone}" target="_blank" class="btn-wa" style="margin-left:8px">
+          ${WA_LOGO} Abrir WA
+        </a>
+        <button class="btn-retomar" style="margin-left:6px" onclick="retomarLead('${l.telefone}')">Retomar</button>`;
+    }else if(l.status_conversa==='FINALIZADO_SUCESSO'){
+      acoes=`<a href="https://wa.me/${l.telefone}" target="_blank" class="btn-wa" style="margin-left:8px;background:linear-gradient(135deg,#128C7E,#075E54)">${WA_LOGO} Ver WA</a>`;
+    }
+
+    return`
+    <div class="lead-row">
+      ${avatarHtml}
       <div class="lead-info">
-        <div class="lead-name">${l.nome_aluno || l.telefone}</div>
-        <div class="lead-sub">${l.telefone} · ${msgsCnt} msg${msgsCnt !== 1 ? 's' : ''}${primMsg ? ' · "' + primMsg + '"' : ''}</div>
+        <div class="lead-name">${nome||l.telefone}</div>
+        <div class="lead-sub">${l.telefone}${fase} · ${msgsCnt} msg${msgsCnt!==1?'s':''}${primMsg?' · "'+primMsg+'"':''}</div>
       </div>
       ${badgeStatus(l.status_conversa)}
       <span class="lead-time" style="margin-left:8px">${tempoRelativo(l.updated_at)}</span>
-      ${l.status_conversa === 'PASSAR_HUMANO' ? `
-        <a href="https://wa.me/${l.telefone}" target="_blank" class="btn btn-sm btn-accent" style="margin-left:8px">Abrir WA</a>
-        <button class="btn btn-sm" style="margin-left:4px" onclick="retomarLead('${l.telefone}')">Retomar</button>
-      ` : ''}
-      ${l.status_conversa === 'FINALIZADO_SUCESSO' ? `
-        <a href="https://wa.me/${l.telefone}" target="_blank" class="btn btn-sm btn-green" style="margin-left:8px">Ver WA</a>
-      ` : ''}
+      ${acoes}
     </div>`;
   }).join('');
 }
 
-// ── NOTIFICAÇÕES ─────────────────────────────
-async function carregarNotificacoes() {
-  const list = document.getElementById('notif-list');
-  try {
-    const r = await fetch(qs(`/api/cliente/${EMPRESA_ID}/notificacoes`));
-    if (!r.ok) { list.innerHTML = '<div class="empty"><div class="empty-icon">☁</div><div class="empty-text">erro ao carregar</div></div>'; return; }
-    const dados = await r.json();
-    if (!dados.length) {
-      list.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><div class="empty-text">nenhuma notificação</div></div>';
+// ── NOTIFICAÇÕES ──────────────────────────────
+async function carregarNotificacoes(){
+  const list=document.getElementById('notif-list');
+  try{
+    const r=await fetch(qs(`/api/cliente/${EMPRESA_ID}/notificacoes`));
+    if(!r.ok){list.innerHTML='<div class="empty"><div class="empty-icon">☁</div><div class="empty-text">erro ao carregar</div></div>';return;}
+    const dados=await r.json();
+    if(!dados.length){
+      list.innerHTML='<div class="empty"><div class="empty-icon">✓</div><div class="empty-text">nenhuma notificação</div></div>';
       return;
     }
-    const icones = {
-      'AGUARDANDO_LIBERACAO': {icon:'⏳', bg:'rgba(245,158,11,.12)', lbl:'Novo contato aguardando liberação'},
-      'PASSAR_HUMANO':        {icon:'🔴', bg:'rgba(239,68,68,.1)',   lbl:'Lead pronto para fechar'},
-      'ACESSO_LIBERADO':      {icon:'🟢', bg:'rgba(0,200,120,.1)',   lbl:'Trial liberado com sucesso'},
-      'CADASTRO_ENVIADO':     {icon:'📋', bg:'rgba(59,130,246,.1)',  lbl:'Cadastro enviado'},
+    const icones={
+      'AGUARDANDO_LIBERACAO':{icon:'⏳',bg:'rgba(245,158,11,.12)',lbl:'Novo contato aguardando liberação'},
+      'PASSAR_HUMANO':{icon:'🔴',bg:'rgba(239,68,68,.1)',lbl:'Lead pronto para fechar'},
+      'ACESSO_LIBERADO':{icon:'🟢',bg:'rgba(0,200,120,.1)',lbl:'Trial liberado com sucesso'},
+      'CADASTRO_ENVIADO':{icon:'📋',bg:'rgba(59,130,246,.1)',lbl:'Cadastro enviado'},
     };
-    list.innerHTML = dados.map((n, i) => {
-      const cfg = icones[n.status_conversa] || {icon:'📣', bg:'rgba(109,79,255,.1)', lbl: n.status_conversa};
-      const novo = i < 3 ? 'notif-new' : '';
-      return `
+    list.innerHTML=dados.map((n,i)=>{
+      const cfg=icones[n.status_conversa]||{icon:'📣',bg:'rgba(109,79,255,.1)',lbl:n.status_conversa};
+      const novo=i<3?'notif-new':'';
+      return`
       <div class="notif-item ${novo}">
         <div class="notif-icon" style="background:${cfg.bg}">${cfg.icon}</div>
         <div class="notif-body">
           <div class="notif-title">${cfg.lbl}</div>
-          <div class="notif-desc">${n.nome_aluno || n.telefone} · ${n.telefone}</div>
+          <div class="notif-desc">${n.nome_aluno||n.telefone} · ${n.telefone}</div>
         </div>
         <div class="notif-time">${tempoRelativo(n.updated_at)}</div>
       </div>`;
     }).join('');
-  } catch(e) {
-    list.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">erro ao carregar</div></div>';
+  }catch(e){
+    list.innerHTML='<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">erro ao carregar</div></div>';
   }
 }
 
-// ── POLL ─────────────────────────────────────
-function iniciarPoll() {
+// ── POLL ──────────────────────────────────────
+function iniciarPoll(){
   carregarLeads();
   carregarNotificacoes();
-  _pollInterval = setInterval(async () => {
+  _pollInterval=setInterval(async()=>{
     await carregarLeads();
-    // Verifica novos itens na fila para badge
-    const novos = _todosLeads.filter(l => l.status_conversa === 'AGUARDANDO_LIBERACAO').length;
-    if (novos > 0 && !document.getElementById('scr-notificacoes').classList.contains('active')) {
-      _notifNovos = novos;
-      atualizarBadgeNotif();
+    const novos=_todosLeads.filter(l=>l.status_conversa==='AGUARDANDO_LIBERACAO').length;
+    if(novos>0&&!document.getElementById('scr-notificacoes').classList.contains('active')){
+      _notifNovos=novos;atualizarBadgeNotif();
     }
-  }, 15000);
+  },15000);
 }
 
-// ── INIT ─────────────────────────────────────
-let _toggles = {};
+// ── STATS ─────────────────────────────────────
+async function carregarStats(){
+  try{
+    const r=await fetch(qs(`/api/cliente/${EMPRESA_ID}/stats`));
+    if(!r.ok)return;
+    const d=await r.json();
+    _toggles=d.toggles||{};
+    document.getElementById('s-total').textContent=d.total||0;
+    document.getElementById('s-atendimento').textContent=d.em_atendimento||0;
+    document.getElementById('s-fechar').textContent=d.pra_fechar||0;
+    const secA=document.getElementById('sec-stat-aguardando');
+    const secT=document.getElementById('sec-stat-trial');
+    const secF=document.getElementById('sec-stat-followup');
+    if(secA)secA.style.display=_toggles.portao_liberacao?'':'none';
+    if(secT)secT.style.display=_toggles.fluxo_comercial?'':'none';
+    if(secF)secF.style.display=_toggles.fluxo_followup?'':'none';
+    if(_toggles.portao_liberacao)document.getElementById('s-aguardando').textContent=d.aguardando||0;
+    if(_toggles.fluxo_comercial)document.getElementById('s-trial').textContent=d.em_trial||0;
+    if(_toggles.fluxo_followup)document.getElementById('s-followup').textContent=d.follow_up||0;
+    const tabFU=document.getElementById('tab-followup');
+    const tabTrial=document.getElementById('tab-trial');
+    if(tabFU)tabFU.style.display=_toggles.fluxo_followup?'':'none';
+    if(tabTrial)tabTrial.style.display=_toggles.fluxo_comercial?'':'none';
+  }catch(e){}
+}
 
-async function init() {
-  if (!EMPRESA_ID) return;
-  document.getElementById('tb-id').textContent = EMPRESA_ID;
+// ── INIT ──────────────────────────────────────
+async function init(){
+  if(!EMPRESA_ID)return;
+  document.getElementById('tb-id').textContent=EMPRESA_ID;
   await carregarStats();
   iniciarPoll();
 }
-
-async function carregarStats() {
-  try {
-    const r = await fetch(qs(`/api/cliente/${EMPRESA_ID}/stats`));
-    if (!r.ok) return;
-    const d = await r.json();
-    _toggles = d.toggles || {};
-
-    document.getElementById('s-total').textContent      = d.total || 0;
-    document.getElementById('s-atendimento').textContent = d.em_atendimento || 0;
-    document.getElementById('s-fechar').textContent      = d.pra_fechar || 0;
-
-    // Condicional: só mostra stats dos fluxos ativos
-    const secAguardando = document.getElementById('sec-stat-aguardando');
-    const secTrial      = document.getElementById('sec-stat-trial');
-    const secFollowup   = document.getElementById('sec-stat-followup');
-    if (secAguardando) secAguardando.style.display = _toggles.portao_liberacao ? '' : 'none';
-    if (secTrial)      secTrial.style.display      = _toggles.fluxo_comercial  ? '' : 'none';
-    if (secFollowup)   secFollowup.style.display   = _toggles.fluxo_followup   ? '' : 'none';
-
-    if (_toggles.portao_liberacao) {
-      document.getElementById('s-aguardando').textContent = d.aguardando || 0;
-    }
-    if (_toggles.fluxo_comercial) {
-      document.getElementById('s-trial').textContent = d.em_trial || 0;
-    }
-    if (_toggles.fluxo_followup) {
-      document.getElementById('s-followup').textContent = d.follow_up || 0;
-    }
-
-    // Aba follow-up só aparece se fluxo ativo
-    const tabFU = document.getElementById('tab-followup');
-    const tabTrial = document.getElementById('tab-trial');
-    if (tabFU) tabFU.style.display = _toggles.fluxo_followup ? '' : 'none';
-    if (tabTrial) tabTrial.style.display = _toggles.fluxo_comercial ? '' : 'none';
-  } catch(e) {}
-}
-
 init();
 </script>
 </body>
